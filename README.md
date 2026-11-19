@@ -35,7 +35,7 @@ pnpm check     # 타입 검사
 ---
 title: "글 제목"
 date: 2026-11-20
-series: textbook        # src/content/series.json 의 id. 연재 밖 글이면 이 줄을 지운다
+series: education       # src/content/series.json 의 id. 연재 밖 글이면 이 줄을 지운다
 format: essay           # essay(긴 글) 또는 memo(메모)
 summary: "목록과 글 머리에 나오는 한두 줄 소개"
 # draft: true           # 초안이면 사이트에 나오지 않는다
@@ -48,7 +48,7 @@ summary: "목록과 글 머리에 나오는 한두 줄 소개"
 
 - 회차(몇 편)와 글 번호는 날짜 순서로 자동으로 붙는다.
 - 연재는 `src/content/series.json`에서 추가·수정한다. 색은 종이 위 대비 4.5:1 이상인 짙은 색만 쓴다.
-- 지금 들어 있는 글 30편과 연재 4개는 `sample: true`인 예시다. 실제 글이 하나라도 올라오면 예시 글은 사이트에서 자동으로 빠진다. 정리할 때는 예시 파일을 지우면 된다.
+- 머리말에 `sample: true`를 넣은 글은 예시로 취급해, 실제 글이 하나라도 있으면 사이트에 나오지 않는다(레이아웃 시험용). 처음 넣었던 예시 30편은 2026-11-19에 지웠다.
 
 ## 구조
 
@@ -63,4 +63,4 @@ summary: "목록과 글 머리에 나오는 한두 줄 소개"
 
 ## 현재 상태
 
-사이트 1차 제작(예시 글). 결정 사항과 남은 질문은 [docs/HANDOFF.md](docs/HANDOFF.md), 시안과 평가는 `drafts/`, `docs/REVIEW-2026-11-19.md`.
+운영 중. 연재 `education`, 첫 글 「육각형론」. 결정 사항과 남은 질문은 [docs/HANDOFF.md](docs/HANDOFF.md), 시안과 평가는 `drafts/`, `docs/REVIEW-2026-11-19.md`.
