@@ -154,7 +154,8 @@ footer b { font-weight: 500; color: var(--ink); }
 <div class="stage" id="stage" tabindex="0" aria-label="글 카드가 연필을 감고 쌓여 올라가는 3D 나선. 드래그로 돌리고, 위아래로 끌어 시간을 오르내립니다. 위아래 화살표로 글을 고를 수 있습니다.">
   <div class="legend" id="legend"><p>SERIES</p></div>
   <div class="ruler" id="ruler" aria-hidden="true"><span class="cap">TIME</span><div class="body"></div></div>
-  <div class="panel" id="panel" aria-live="polite"></div>
+  <div class="panel" id="panel"></div>
+  <p class="sr" id="announce" aria-live="polite"></p>
   <p class="hint">드래그해 돌리기 · 위아래로 끌어 시간 이동<br>카드를 누르면 가까이 봅니다</p>
   <div class="fallback" id="fallback" hidden>이 환경에서는 3D를 표시할 수 없습니다. 아래 ‘목록으로 보기’에서 글을 볼 수 있습니다.</div>
 </div>
@@ -264,10 +265,14 @@ const tex = (canvas) => { const t = new THREE.CanvasTexture(canvas); t.colorSpac
 const rand = (() => { let s = 1960; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
 
 /* 카드 앞면: 번호, 시리즈, 제목, 날짜. 종이 섬유 결을 아주 옅게. */
-function frontTexture(p) {
+// 카드 그림은 1024×640 좌표로 그리고, 실제 크기(px)는 따로 정한다.
+// 평소: 데스크톱 640×400, 휴대폰 512×320. 고른 카드만 1024×640으로 바꿔 끼운다.
+const LO_W = matchMedia('(max-width: 720px)').matches ? 512 : 640;
+function frontTexture(p, px = LO_W) {
   const w = 1024, h = 640, cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
+  cv.width = px; cv.height = Math.round(px * 0.625);
   const g = cv.getContext('2d');
+  g.scale(px / w, px / w);
   g.fillStyle = C.sheet; g.fillRect(0, 0, w, h);
   for (let k = 0; k < 2200; k++) { g.fillStyle = `rgba(110,98,78,${rand() * 0.05})`; g.fillRect(rand() * w, rand() * h, 1 + rand() * 2.5, 1); }
   g.strokeStyle = C.linen; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, h - 3);
@@ -308,6 +313,7 @@ const cards = POSTS.map((p) => {
   // 조명 대신 종이 그대로(MeshBasic). 깊이는 안개와 각도에 따른 옅은 음영으로만 준다.
   const edge = new THREE.MeshBasicMaterial({ color: '#E9E4D8', transparent: true });
   const front = new THREE.MeshBasicMaterial({ map: frontTexture(p), transparent: true });
+  front.userData.lo = front.map;
   const back = new THREE.MeshBasicMaterial({ map: backTex, transparent: true });
   const mesh = new THREE.Mesh(cardGeo, [edge, edge, edge, edge, front, back]);
   const tabMat = new THREE.MeshBasicMaterial({ color: SERIES[p.s].color, transparent: true });
@@ -483,6 +489,9 @@ function fit() {
   // 휴대폰처럼 좁은 화면: 나선 양옆이 조금 잘리더라도 앞쪽 카드가 화면 폭의 절반 가까이 되게.
   const narrow = camera.aspect < 0.8;
   st.cardScale = narrow ? 1.15 : 1;
+  if (narrow && !st.narrow) st.az = ((N - 1) * (Math.PI * 2 / TURN)) % (Math.PI * 2); // 가장 최근 카드가 정면
+  st.narrow = narrow;
+  pencil.scale.set(narrow ? 0.7 : 1, 1, narrow ? 0.7 : 1);
   st.baseDist = narrow ? (R - 0.5) / Math.tan(hh) : Math.max(11.5, (R + 1.5) / Math.tan(hh));
 }
 fit(); new ResizeObserver(fit).observe(stage);
@@ -507,9 +516,18 @@ legend.addEventListener('click', (e) => {
   legend.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(+x.dataset.k === st.filter)));
 });
 
+let hiCard = -1;
+function sharpen(i) { // 고른 카드만 선명한 그림으로, 이전 것은 원래대로 돌리고 메모리를 비운다
+  if (hiCard >= 0 && hiCard !== i) { const m = cards[hiCard].mats[1]; m.map.dispose(); m.map = m.userData.lo; m.needsUpdate = true; hiCard = -1; }
+  if (i >= 0 && hiCard !== i) { const m = cards[i].mats[1]; m.map = frontTexture(cards[i].p, 1024); m.needsUpdate = true; hiCard = i; }
+}
+const announce = document.getElementById('announce');
 function select(i) {
   st.sel = i;
-  if (i < 0) { showPanel(null); return; }
+  sharpen(i);
+  ruler.hidden = st.mode === 1 || (st.narrow && i >= 0); // 휴대폰에서 카드를 고른 동안은 자를 숨긴다
+  if (i < 0) { showPanel(null); announce.textContent = ''; return; }
+  { const p = POSTS[i]; announce.textContent = `${SERIES[p.s].name} ${p.ep}편, ${p.title}, ${p.label}`; }
   const c = cards[i], k = st.mode;
   st.azT = k ? c.a1 : c.a0;
   st.yT = k ? c.y1 : c.y0;
@@ -589,10 +607,10 @@ function frame(now) {
   // 카메라
   const idle = !st.dragging && now - st.lastInput > 2600;
   if (st.azT !== null) st.az = lerpAngle(st.az, st.azT, damp(0.07, dt));
-  else if (!st.dragging) { st.az += st.azV * dt; st.azV *= Math.exp(-5 * dt); if (idle && !reduced && st.sel < 0 && !st.over) st.az += dt * 0.07; }
+  else if (!st.dragging) { st.az += st.azV * dt; st.azV *= Math.exp(-5 * dt); if (idle && !reduced && st.sel < 0 && !st.over && !st.narrow) st.az += dt * 0.07; }
   if (st.mode === 1 && st.sel < 0) st.yT = 3.2;
   st.y += (st.yT - st.y) * (reduced ? 1 : damp(0.07, dt));
-  const distT = st.baseDist + (st.mode ? 7 : 0) - (st.sel >= 0 ? 4.2 : 0);
+  const distT = st.baseDist + (st.mode ? 7 : 0) - (st.sel >= 0 ? (st.narrow ? 2 : 4.2) : 0); // 휴대폰은 카드가 화면 폭의 약 70%가 되는 데서 멈춘다
   st.dist += (distT - st.dist) * damp(0.06, dt);
   const elevT = st.mode ? 0.24 : (st.sel >= 0 ? 0.05 : 0.2);
   st.elev += (elevT - st.elev) * damp(0.06, dt);
@@ -628,7 +646,7 @@ function frame(now) {
     const ia = i * 6;
     v3.set(Math.sin(a) * (r + push - 0.02), y, Math.cos(a) * (r + push - 0.02));
     tPos[ia] = v3.x; tPos[ia + 1] = v3.y; tPos[ia + 2] = v3.z;
-    tPos[ia + 3] = Math.sin(a) * 0.14; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * 0.14;
+    const pr = 0.14 * pencil.scale.x; tPos[ia + 3] = Math.sin(a) * pr; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * pr;
     const focus = st.sel >= 0 ? st.sel : st.hover;
     const tie = focus >= 0 ? (cards[focus].p.s === c.p.s ? (i === focus ? 0.75 : 0.4) : 0.02) : (st.filter >= 0 ? (st.filter === c.p.s ? 0.35 : 0) : 0.07);
     c.tie = (c.tie ?? 0.07) + (tie - (c.tie ?? 0.07)) * damp(0.12, dt);
