@@ -14,7 +14,7 @@
 | 글의 성격 | 교육론, AI 활용, 그 밖의 '생각'. 장소·여행이 아니라 글 중심 |
 | 글쓴이 | 사용자 혼자 |
 | 제작 방식 | Git + MDX (ELSEWHERE 방식). DB·로그인·편집 화면 없음 |
-| 저장소 | `burntbread-jpg/therefore`, 공개. 아직 만들지 않음(사용자가 나중에 GitHub에서 생성).  |
+| 저장소 | `burntbread-jpg/therefore`, 공개(2026-11-19 생성). 그전 작업은 Google Drive `THEREFORE` 폴더에도 백업해 두었다 |
 | 글 구성 | **시리즈(연재) 중심**. 세부 분류는 나중에 다듬는다 |
 | 기획 문서 위치 | 저장소 문서(README, 이 파일)만. Claude Docs·Google Drive는 쓰지 않음 |
 
