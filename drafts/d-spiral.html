@@ -47,7 +47,9 @@ nav { display: flex; gap: 24px; font: 400 13px/1 var(--latin); color: var(--capt
 .board-head h2 { font: 500 15px/1 var(--serif); }
 .board-head h2 span { font: 400 12px/1 var(--latin); letter-spacing: 0.16em; color: var(--caption); margin-left: 10px; }
 .modes { display: flex; gap: 20px; font-size: 13px; color: var(--caption); }
-.modes button { padding-bottom: 3px; border-bottom: 1px solid transparent; color: var(--caption); }
+.modes button { position: relative; padding-bottom: 3px; border-bottom: 1px solid transparent; color: var(--caption); }
+.modes button::after, .panel .row a::after, .board-foot summary::after { content: ""; position: absolute; inset: -10px -8px; } /* 보이는 크기는 그대로, 누르는 영역만 넓게 */
+.panel .row a, .board-foot summary { position: relative; }
 .modes button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
 
 .stage { position: relative; height: clamp(560px, 78vh, 760px); margin-top: 0; outline: none; }
@@ -57,9 +59,9 @@ nav { display: flex; gap: 24px; font: 400 13px/1 var(--latin); color: var(--capt
 
 .legend { position: absolute; top: 20px; left: max(32px, env(safe-area-inset-left, 0px)); display: grid; gap: 2px; z-index: 2; }
 .legend p { font: 400 11px/1 var(--latin); letter-spacing: 0.16em; color: var(--caption); margin-bottom: 8px; }
-.legend button { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 5px 0; text-align: left; font: 400 14px/1.3 var(--serif); color: var(--ink); transition: opacity .3s; }
+.legend button { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 6px 0; min-height: 28px; text-align: left; font: 400 14px/1.3 var(--serif); color: var(--ink); transition: opacity .3s; }
 .legend button i { width: 14px; height: 5px; display: block; }
-.legend button span { font: 400 12px/1 var(--latin); color: var(--taupe); margin-left: 12px; }
+.legend button span { font: 400 12px/1 var(--latin); color: var(--caption); margin-left: 12px; }
 .legend.filtered button[aria-pressed="false"] { opacity: .38; }
 
 .ruler { position: absolute; top: 9%; bottom: 13%; right: max(32px, env(safe-area-inset-right, 0px)); width: 64px; z-index: 2; cursor: ns-resize; touch-action: none; transition: opacity .5s; }
@@ -110,7 +112,8 @@ footer b { font-weight: 500; color: var(--ink); }
   .stage { height: 620px; }
   .legend { top: 12px; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); grid-template-columns: 1fr 1fr; column-gap: 16px; }
   .legend p { grid-column: 1 / -1; margin-bottom: 2px; }
-  .legend button { font-size: 12.5px; padding: 3px 0; grid-template-columns: 12px 1fr auto; gap: 6px; }
+  .legend button { font-size: 12.5px; padding: 0; min-height: 44px; grid-template-columns: 12px 1fr auto; gap: 6px; }
+  .modes button::after, .panel .row a::after, .board-foot summary::after { inset: -12px -10px; }
   .legend button span { margin-left: 4px; }
   .ruler { right: max(10px, env(safe-area-inset-right, 0px)); width: 44px; top: 24%; bottom: 34%; }
   .ruler .body { width: 18px; }
@@ -182,7 +185,7 @@ const C = { paper: '#F6F3ED', sheet: '#FBF9F4', linen: '#E4E0D6', taupe: '#A69D8
 const SERIES = [
   { name: '다시 쓰는 교과서', topic: '교육론', color: '#4F594C' },
   { name: 'AI와 함께 공부하기', topic: 'AI 활용', color: '#5B6A78' },
-  { name: '좋은 질문에 관하여', topic: '교육론', color: '#9C7E5E' },
+  { name: '좋은 질문에 관하여', topic: '교육론', color: '#86684A' },
   { name: '받아쓰기 노트', topic: '짧은 생각', color: '#24231F' },
 ];
 const RAW = [
@@ -269,7 +272,7 @@ function frontTexture(p) {
   for (let k = 0; k < 2200; k++) { g.fillStyle = `rgba(110,98,78,${rand() * 0.05})`; g.fillRect(rand() * w, rand() * h, 1 + rand() * 2.5, 1); }
   g.strokeStyle = C.linen; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, h - 3);
   const s = SERIES[p.s];
-  g.fillStyle = C.taupe; g.font = '300 66px Manrope'; g.textBaseline = 'alphabetic';
+  g.fillStyle = '#857C6D'; g.font = '300 66px Manrope'; g.textBaseline = 'alphabetic'; // 큰 글자 대비 3:1 이상
   g.fillText(String(p.i + 1).padStart(2, '0'), 64, 124);
   g.fillStyle = s.color; g.font = '500 30px "Noto Serif KR"'; g.textAlign = 'right';
   g.fillText(s.name, w - 64, 112);
@@ -460,11 +463,16 @@ const plates = SERIES.map((s, k) => {
 /* ───────── 상태와 조작 ───────── */
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+// 화면 주사율과 무관한 감쇠: 60Hz에서 한 프레임에 k만큼 다가가던 움직임과 같은 빠르기
+const damp = (k, dt) => 1 - Math.pow(1 - k, dt * 60);
 const lerpAngle = (a, b, k) => { let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + d * k; };
-const MORPH_STAGGER = 0.022, MORPH_DUR = 1.15, MORPH_TOTAL = (N - 1) * MORPH_STAGGER + MORPH_DUR;
+const MORPH_STAGGER = 0.009, MORPH_DUR = 0.6, MORPH_TOTAL = (N - 1) * MORPH_STAGGER + MORPH_DUR;
+// 쌓이는 연출은 첫 방문에만. 다시 오면 바로 완성된 나선을 보여 준다.
+let seenBefore = false;
+try { seenBefore = localStorage.getItem('therefore-spiral-seen') === '1'; localStorage.setItem('therefore-spiral-seen', '1'); } catch (e) { /* 저장소를 쓸 수 없어도 그대로 동작 */ }
 const st = {
-  build: reduced ? N : 0, morphT: 0, mode: 0,
-  az: ((N - 1) * (Math.PI * 2 / TURN)) % (Math.PI * 2) - 0.25, azV: 0, azT: null, y: reduced ? TOP : 0, yT: TOP, elev: 0.13, dist: 12, baseDist: 12,
+  build: reduced || seenBefore ? N : 0, morphT: 0, mode: 0,
+  az: ((N - 1) * (Math.PI * 2 / TURN)) % (Math.PI * 2) - 0.25, azV: 0, azT: null, y: reduced || seenBefore ? TOP : 0, yT: TOP, elev: 0.13, dist: 12, baseDist: 12,
   cardScale: 1, hover: -1, sel: -1, filter: -1, dragging: false, lastInput: -1e9, visible: true,
 };
 
@@ -534,11 +542,12 @@ function pick(e) {
 }
 const cvs = renderer.domElement;
 let down = null;
-cvs.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, moved: 0, type: e.pointerType }; st.dragging = true; cvs.classList.add('grabbing'); cvs.setPointerCapture(e.pointerId); });
+cvs.addEventListener('pointerdown', (e) => { st.azV = 0; down = { x: e.clientX, y: e.clientY, moved: 0, type: e.pointerType, t: performance.now() }; st.dragging = true; cvs.classList.add('grabbing'); cvs.setPointerCapture(e.pointerId); });
 cvs.addEventListener('pointermove', (e) => {
   if (down) {
     const dx = e.clientX - down.x, dy = e.clientY - down.y; down.moved += Math.abs(dx) + Math.abs(dy);
-    st.azV = -dx * 0.0042; st.az += -dx * 0.0042; st.azT = null;
+    const tNow = performance.now(), vdt = Math.max(0.008, (tNow - down.t) / 1000); down.t = tNow;
+    st.azV = (-dx * 0.0042) / vdt; st.az += -dx * 0.0042; st.azT = null;
     if (down.type !== 'touch' && st.mode === 0) { st.yT = clamp(st.yT + dy * 0.012, 0, TOP); }
     down.x = e.clientX; down.y = e.clientY; st.lastInput = performance.now();
     return;
@@ -553,11 +562,12 @@ const release = (e) => {
 };
 cvs.addEventListener('pointerup', release);
 cvs.addEventListener('pointercancel', () => { down = null; st.dragging = false; cvs.classList.remove('grabbing'); });
-cvs.addEventListener('pointerleave', () => { if (!down) { st.hover = -1; cvs.classList.remove('pointing'); if (st.sel < 0) showPanel(null); } });
+cvs.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') st.over = true; });
+cvs.addEventListener('pointerleave', () => { st.over = false; if (!down) { st.hover = -1; cvs.classList.remove('pointing'); if (st.sel < 0) showPanel(null); } });
 stage.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     e.preventDefault();
-    const cur = st.sel >= 0 ? st.sel : N;
+    const cur = st.sel >= 0 ? st.sel : (e.key === 'ArrowDown' ? N - 1 : N - 2);
     select(clamp(cur + (e.key === 'ArrowUp' ? 1 : -1), 0, N - 1));
   } else if (e.key === 'Escape') select(-1);
 });
@@ -571,21 +581,21 @@ function frame(now) {
   if (!st.visible) return;
 
   // 처음: 카드가 아래에서부터 한 장씩 쌓이고, 카메라와 연필심이 함께 올라간다.
-  if (st.build < N) { st.build = Math.min(N, st.build + dt * 9.5); st.yT = Math.max(0, (st.build - 1) * STEP); }
+  if (st.build < N) { st.build = Math.min(N, st.build + dt * 17); st.yT = Math.max(0, (st.build - 1) * STEP); }
   // 시간의 나선 ↔ 과목별 기둥
   if (!reduced) st.morphT = clamp(st.morphT + (st.mode ? dt : -dt), 0, MORPH_TOTAL);
   const mk = st.morphT / MORPH_TOTAL;
 
   // 카메라
   const idle = !st.dragging && now - st.lastInput > 2600;
-  if (st.azT !== null) st.az = lerpAngle(st.az, st.azT, 0.07);
-  else { st.az += st.azV; st.azV *= 0.92; if (idle && !reduced && st.sel < 0) st.az += dt * 0.07; }
+  if (st.azT !== null) st.az = lerpAngle(st.az, st.azT, damp(0.07, dt));
+  else if (!st.dragging) { st.az += st.azV * dt; st.azV *= Math.exp(-5 * dt); if (idle && !reduced && st.sel < 0 && !st.over) st.az += dt * 0.07; }
   if (st.mode === 1 && st.sel < 0) st.yT = 3.2;
-  st.y += (st.yT - st.y) * (reduced ? 1 : 0.07);
+  st.y += (st.yT - st.y) * (reduced ? 1 : damp(0.07, dt));
   const distT = st.baseDist + (st.mode ? 7 : 0) - (st.sel >= 0 ? 4.2 : 0);
-  st.dist += (distT - st.dist) * 0.06;
+  st.dist += (distT - st.dist) * damp(0.06, dt);
   const elevT = st.mode ? 0.24 : (st.sel >= 0 ? 0.05 : 0.2);
-  st.elev += (elevT - st.elev) * 0.06;
+  st.elev += (elevT - st.elev) * damp(0.06, dt);
   camera.position.set(Math.sin(st.az) * st.dist * Math.cos(st.elev), st.y + Math.sin(st.elev) * st.dist, Math.cos(st.az) * st.dist * Math.cos(st.elev));
   camera.lookAt(0, st.y - (st.mode || st.sel >= 0 ? 0 : 0.9), 0);
   scene.fog.near = st.dist - 2.5; scene.fog.far = st.dist + 11;
@@ -596,18 +606,18 @@ function frame(now) {
     const appear = ease(clamp(st.build - i));
     const k = ease(clamp((st.morphT - i * MORPH_STAGGER) / MORPH_DUR));
     const a = lerpAngle(c.a0, c.a1, k);
-    const r = THREE.MathUtils.lerp(R, RC, k) + Math.sin(k * Math.PI) * 1.1;
-    let y = THREE.MathUtils.lerp(c.y0, c.y1, k) + Math.sin(k * Math.PI) * 0.5 - (1 - appear) * 1.4;
+    const r = THREE.MathUtils.lerp(R, RC, k) + Math.sin(k * Math.PI) * 0.5;
+    let y = THREE.MathUtils.lerp(c.y0, c.y1, k) + Math.sin(k * Math.PI) * 0.2 - (1 - appear) * 1.0;
     const hv = (i === st.hover && !st.dragging) || i === st.sel ? 1 : 0;
-    c.hover += (hv - c.hover) * 0.16;
+    c.hover += (hv - c.hover) * damp(0.16, dt);
     const push = c.hover * (i === st.sel ? 0.55 : 0.3);
     c.group.position.set(Math.sin(a) * (r + push), y, Math.cos(a) * (r + push));
     c.group.rotation.set(0, 0, 0);
     c.group.rotation.y = a;
-    c.group.rotateX(-0.07 * (1 - k) + ease(k) * Math.PI * 2 * (st.mode ? 1 : -1) * (k > 0 && k < 1 ? 1 : 0));
+    c.group.rotateX(-0.07 * (1 - k) - Math.sin(k * Math.PI) * 0.45); // 옮겨 가는 동안만 살짝 젖혀진다
     c.group.scale.setScalar((1 + c.hover * 0.06) * st.cardScale);
     const target = (st.filter < 0 || st.filter === c.p.s ? 1 : 0.1) * appear;
-    c.op += (target - c.op) * 0.12;
+    c.op += (target - c.op) * damp(0.12, dt);
     for (const m of c.mats) { m.opacity = c.op; m.depthWrite = c.op > 0.95; }
     // 각도에 따른 옅은 음영: 정면일수록 밝고, 비스듬할수록 살짝 어둡다.
     c.group.getWorldDirection(nrm); dir.subVectors(camera.position, c.group.position).normalize();
@@ -619,7 +629,10 @@ function frame(now) {
     v3.set(Math.sin(a) * (r + push - 0.02), y, Math.cos(a) * (r + push - 0.02));
     tPos[ia] = v3.x; tPos[ia + 1] = v3.y; tPos[ia + 2] = v3.z;
     tPos[ia + 3] = Math.sin(a) * 0.14; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * 0.14;
-    const al = c.op * 0.5 * (1 - k);
+    const focus = st.sel >= 0 ? st.sel : st.hover;
+    const tie = focus >= 0 ? (cards[focus].p.s === c.p.s ? (i === focus ? 0.75 : 0.4) : 0.02) : (st.filter >= 0 ? (st.filter === c.p.s ? 0.35 : 0) : 0.07);
+    c.tie = (c.tie ?? 0.07) + (tie - (c.tie ?? 0.07)) * damp(0.12, dt);
+    const al = c.op * c.tie * (1 - k);
     for (const o of [0, 4]) { tCol[i * 8 + o] = taupe.r; tCol[i * 8 + o + 1] = taupe.g; tCol[i * 8 + o + 2] = taupe.b; tCol[i * 8 + o + 3] = al; }
   });
   threadGeo.attributes.position.needsUpdate = true; threadGeo.attributes.color.needsUpdate = true;
