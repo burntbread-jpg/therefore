@@ -1,0 +1,580 @@
+<title>THEREFORE 쌓이는 생각</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&family=Noto+Serif+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 위는 고정된 2D 원고지, 아래는 연필을 감고 올라가는 글 카드의 나선(3D). 한 가지 밝은 종이 테마로 고정. */
+:root {
+  --paper: #F6F3ED;
+  --sheet: #FBF9F4;
+  --linen: #E4E0D6;
+  --taupe: #A69D8D;
+  --olive: #4F594C;
+  --ink: #24231F;
+  --caption: #69655F;
+  --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --sans: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --latin: "Manrope", var(--sans);
+  color-scheme: light;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.7; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+ol, ul { list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.num { font-family: var(--latin); font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); }
+header.top { display: flex; justify-content: space-between; align-items: center; height: 72px; }
+.mark { font: 500 14px/1 var(--latin); letter-spacing: 0.3em; }
+.mark small { font: 400 13px/1 var(--serif); letter-spacing: 0; color: var(--caption); margin-left: 10px; }
+nav { display: flex; gap: 24px; font: 400 13px/1 var(--latin); color: var(--caption); }
+
+/* 원고지 (고정) */
+.hero { padding-block: 88px 24px; text-align: center; }
+.hero .w { font: 300 15px/1 var(--latin); letter-spacing: 0.5em; color: var(--caption); margin-bottom: 40px; padding-left: 0.5em; }
+.grid { --c: 60px; display: grid; grid-template-columns: repeat(12, var(--c)); border-top: 1px solid var(--taupe); border-left: 1px solid var(--taupe); width: max-content; margin: 0 auto; }
+.grid span { width: var(--c); height: var(--c); border-right: 1px solid var(--taupe); border-bottom: 1px solid var(--taupe); display: flex; align-items: center; justify-content: center; font: 400 calc(var(--c) * 0.5)/1 var(--serif); }
+.grid span.pt { justify-content: flex-start; align-items: flex-end; padding: 0 0 calc(var(--c) * 0.16) calc(var(--c) * 0.2); }
+.hero .sub { margin-top: 36px; font-size: 15px; color: var(--caption); }
+
+/* 쌓이는 생각 */
+.board { margin-top: 72px; }
+.board-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px 24px; padding-bottom: 14px; border-bottom: 1px solid var(--ink); }
+.board-head h2 { font: 500 15px/1 var(--serif); }
+.board-head h2 span { font: 400 12px/1 var(--latin); letter-spacing: 0.16em; color: var(--caption); margin-left: 10px; }
+.modes { display: flex; gap: 20px; font-size: 13px; color: var(--caption); }
+.modes button { padding-bottom: 3px; border-bottom: 1px solid transparent; color: var(--caption); }
+.modes button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
+
+.stage { position: relative; height: clamp(560px, 78vh, 760px); margin-top: 0; outline: none; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+.stage canvas.grabbing { cursor: grabbing; }
+.stage canvas.pointing { cursor: pointer; }
+
+.legend { position: absolute; top: 20px; left: max(32px, env(safe-area-inset-left, 0px)); display: grid; gap: 2px; z-index: 2; }
+.legend p { font: 400 11px/1 var(--latin); letter-spacing: 0.16em; color: var(--caption); margin-bottom: 8px; }
+.legend button { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 5px 0; text-align: left; font: 400 14px/1.3 var(--serif); color: var(--ink); transition: opacity .3s; }
+.legend button i { width: 14px; height: 5px; display: block; }
+.legend button span { font: 400 12px/1 var(--latin); color: var(--taupe); margin-left: 12px; }
+.legend.filtered button[aria-pressed="false"] { opacity: .38; }
+
+.ruler { position: absolute; top: 9%; bottom: 13%; right: max(32px, env(safe-area-inset-right, 0px)); width: 64px; z-index: 2; cursor: ns-resize; touch-action: none; transition: opacity .5s; }
+.ruler[hidden] { display: block !important; opacity: 0; pointer-events: none; }
+.ruler .body { position: absolute; inset: 0 0 0 auto; width: 26px; border: 1px solid var(--taupe); border-right: 0; background: var(--sheet); }
+.ruler .tick { position: absolute; right: 0; width: 7px; height: 1px; background: var(--taupe); }
+.ruler .tick.m { width: 14px; background: var(--ink); }
+.ruler .lab { position: absolute; right: 32px; transform: translateY(50%); font: 400 11px/1 var(--latin); color: var(--caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ruler .now { position: absolute; right: -6px; left: 8px; height: 1px; background: var(--olive); transition: bottom .05s linear; }
+.ruler .now::after { content: ""; position: absolute; right: 0; top: -3px; border: 3.5px solid transparent; border-right-color: var(--olive); }
+.ruler .cap { position: absolute; top: -26px; right: 0; font: 400 11px/1 var(--latin); letter-spacing: .12em; color: var(--caption); }
+
+.panel { position: absolute; left: max(32px, env(safe-area-inset-left, 0px)); bottom: 28px; width: min(360px, calc(100% - 140px)); z-index: 2; padding-top: 14px; border-top: 1px solid var(--ink); }
+.panel .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--caption); }
+.panel .meta i { width: 14px; height: 5px; display: block; }
+.panel h3 { font: 400 22px/1.45 var(--serif); margin-top: 6px; text-wrap: balance; }
+.panel .row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; font-size: 13px; color: var(--caption); }
+.panel .row a { color: var(--ink); border-bottom: 1px solid var(--linen); }
+.hint { position: absolute; right: max(32px, env(safe-area-inset-right, 0px)); bottom: 28px; font-size: 12px; color: var(--caption); text-align: right; z-index: 2; }
+
+.fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--caption); font-size: 14px; padding: 24px; }
+.fallback[hidden] { display: none; }
+
+.board-foot { display: grid; grid-template-columns: 1fr auto; gap: 16px 40px; align-items: start; padding-top: 18px; border-top: 1px solid var(--linen); }
+.board-foot p { font-size: 14px; color: var(--caption); max-width: 60ch; }
+.board-foot details { grid-column: 1 / -1; }
+.board-foot summary { cursor: pointer; font-size: 13px; color: var(--ink); width: max-content; border-bottom: 1px solid var(--linen); list-style: none; }
+.board-foot summary::-webkit-details-marker { display: none; }
+.plain { margin-top: 12px; columns: 2; column-gap: 48px; }
+.plain li { break-inside: avoid; display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--linen); font-size: 14px; }
+.plain li .n, .plain li .d { font-size: 12px; color: var(--caption); }
+.plain li .t { font-family: var(--serif); }
+.plain li .s { display: block; font-size: 11px; color: var(--caption); font-family: var(--sans); }
+
+footer { margin-top: 120px; padding-block: 20px 48px; border-top: 1px solid var(--ink); display: flex; justify-content: space-between; font: 400 12px/1.6 var(--latin); letter-spacing: 0.12em; color: var(--caption); }
+footer b { font-weight: 500; color: var(--ink); }
+.draft { font: 400 11px/1 var(--latin); letter-spacing: .08em; color: var(--caption); }
+
+@media (max-width: 720px) {
+  .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  header.top { height: 56px; }
+  nav { display: none; }
+  .hero { padding-block: 56px 16px; }
+  .hero .w { margin-bottom: 28px; }
+  .grid { --c: 29px; }
+  .hero .sub { font-size: 14px; }
+  .board { margin-top: 56px; }
+  .stage { height: 620px; }
+  .legend { top: 12px; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); grid-template-columns: 1fr 1fr; column-gap: 16px; }
+  .legend p { grid-column: 1 / -1; margin-bottom: 2px; }
+  .legend button { font-size: 12.5px; padding: 3px 0; grid-template-columns: 12px 1fr auto; gap: 6px; }
+  .legend button span { margin-left: 4px; }
+  .ruler { right: max(10px, env(safe-area-inset-right, 0px)); width: 44px; top: 24%; bottom: 34%; }
+  .ruler .body { width: 18px; }
+  .ruler .lab { font-size: 10px; right: 30px; }
+  .panel { left: 0; right: 0; width: auto; bottom: 0; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); background: var(--paper); }
+  .panel h3 { font-size: 19px; }
+  .hint { display: none; }
+  .board-foot { grid-template-columns: 1fr; }
+  .plain { columns: 1; }
+  footer { flex-direction: column; gap: 8px; margin-top: 80px; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="#">THEREFORE<small>그러므로</small></a>
+    <nav><a href="#">연재</a><a href="#">전체 글</a><a href="#">소개</a><a href="#">RSS</a></nav>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-h">
+    <h1 id="hero-h" class="sr">인생은 초등학교에서 배운 것의 복습이란다.</h1>
+    <p class="w" aria-hidden="true">THEREFORE</p>
+    <div class="grid" aria-hidden="true"><span>인</span><span>생</span><span>은</span><span></span><span>초</span><span>등</span><span>학</span><span>교</span><span>에</span><span>서</span><span></span><span></span><span>배</span><span>운</span><span></span><span>것</span><span>의</span><span></span><span>복</span><span>습</span><span>이</span><span>란</span><span>다</span><span class="pt">.</span></div>
+    <p class="sub">교육과 AI, 그리고 그 밖의 생각을 연재로 적어 두는 곳.</p>
+  </section>
+
+  <section class="board" aria-labelledby="board-h">
+    <div class="board-head">
+      <h2 id="board-h">쌓이는 생각<span>SPIRAL</span></h2>
+      <div class="modes" role="group" aria-label="보는 방식">
+        <button type="button" id="mode-time" aria-pressed="true">시간의 나선</button>
+        <button type="button" id="mode-subject" aria-pressed="false">과목별 기둥</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage" tabindex="0" aria-label="글 카드가 연필을 감고 쌓여 올라가는 3D 나선. 드래그로 돌리고, 위아래로 끌어 시간을 오르내립니다. 위아래 화살표로 글을 고를 수 있습니다.">
+  <div class="legend" id="legend"><p>SERIES</p></div>
+  <div class="ruler" id="ruler" aria-hidden="true"><span class="cap">TIME</span><div class="body"></div></div>
+  <div class="panel" id="panel" aria-live="polite"></div>
+  <p class="hint">드래그해 돌리기 · 위아래로 끌어 시간 이동<br>카드를 누르면 가까이 봅니다</p>
+  <div class="fallback" id="fallback" hidden>이 환경에서는 3D를 표시할 수 없습니다. 아래 ‘목록으로 보기’에서 글을 볼 수 있습니다.</div>
+</div>
+
+<div class="wrap">
+  <div class="board-foot">
+    <p>같은 과목으로 몇 번이고 돌아오되, 매번 조금 더 높은 곳에서. 브루너의 ‘나선형 교육과정’에서 빌린 모양입니다. 카드 한 장이 글 한 편이고, 새 글이 올라올 때마다 연필이 자랍니다.</p>
+    <span class="draft">시안 · 글 제목은 모두 예시</span>
+    <details>
+      <summary>목록으로 보기</summary>
+      <ol class="plain" id="plain"></ol>
+    </details>
+  </div>
+
+  <footer>
+    <span>ELSEWHERE · HERE · <b>THEREFORE</b></span>
+    <span class="num">© 2026</span>
+  </footer>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ───────── 데이터 (예시) ───────── */
+const C = { paper: '#F6F3ED', sheet: '#FBF9F4', linen: '#E4E0D6', taupe: '#A69D8D', olive: '#4F594C', ink: '#24231F', caption: '#69655F' };
+const SERIES = [
+  { name: '다시 쓰는 교과서', topic: '교육론', color: '#4F594C' },
+  { name: 'AI와 함께 공부하기', topic: 'AI 활용', color: '#5B6A78' },
+  { name: '좋은 질문에 관하여', topic: '교육론', color: '#9C7E5E' },
+  { name: '받아쓰기 노트', topic: '짧은 생각', color: '#24231F' },
+];
+const RAW = [
+  [3, '받아쓰기의 쓸모'], [0, '국어책의 첫 문장'], [1, '검색 대신 대화'], [2, '틀린 답의 쓸모'],
+  [3, '지우개 가루'], [0, '‘슬기로운 생활’이라는 이름'], [1, '프롬프트는 질문하는 연습이다'], [3, '연필을 깎는 시간'],
+  [2, '아이에게 ‘왜’를 묻게 하는 법'], [0, '바른생활은 왜 사라졌나'], [1, 'AI에게 숙제를 시키면 무엇을 배우나'], [3, '칠판 앞의 침묵'],
+  [0, '구구단을 외우던 소리'], [2, '좋은 선생님은 늦게 대답한다'], [1, '틀린 답을 주는 AI'], [3, '실내화 주머니'],
+  [0, '일기장 검사'], [1, '요약이 빼앗는 것'], [2, '질문이 사라지는 학년'], [3, '운동장의 금'],
+  [0, '알림장이라는 약속'], [1, '아이와 함께 쓰는 챗봇'], [3, '다시 읽은 동화'], [2, '모른다고 말하는 용기'],
+  [0, '짝꿍 제도'], [1, '기계에게 설명하며 배우기'], [3, '시간표 뒷면'], [2, '질문을 채점할 수 있을까'],
+  [1, 'AI 시대의 받아쓰기'], [0, '방학 숙제의 시간표'],
+];
+const start = Date.UTC(2026, 3, 6);
+const counts = SERIES.map(() => 0);
+const POSTS = RAW.map(([s, title], i) => {
+  const d = new Date(start + i * 7 * 864e5);
+  return { i, s, title, ep: ++counts[s], date: d, label: `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${String(d.getUTCDate()).padStart(2, '0')}` };
+});
+SERIES.forEach((s, k) => { s.count = counts[k]; });
+const N = POSTS.length;
+
+/* ───────── HTML 부분: 범례, 목록, 패널 ───────── */
+const stage = document.getElementById('stage');
+const legend = document.getElementById('legend');
+const panel = document.getElementById('panel');
+const ruler = document.getElementById('ruler');
+const plain = document.getElementById('plain');
+SERIES.forEach((s, k) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.dataset.k = k; b.setAttribute('aria-pressed', 'false');
+  b.innerHTML = `<i style="background:${s.color}"></i>${s.name}<span>${s.count}</span>`;
+  legend.append(b);
+});
+[...POSTS].reverse().forEach((p) => {
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="n num">${String(p.i + 1).padStart(2, '0')}</span><span class="t">${p.title}<span class="s">${SERIES[p.s].name} · ${p.ep}편</span></span><span class="d num">${p.label}</span>`;
+  plain.append(li);
+});
+function showPanel(p, chosen) {
+  if (!p) p = POSTS[N - 1];
+  const s = SERIES[p.s];
+  panel.innerHTML = `<p class="meta"><i style="background:${s.color}"></i>${chosen ? '' : (p.i === N - 1 ? '가장 최근 글 · ' : '')}${s.name} · ${p.ep}편</p><h3>${p.title}</h3><p class="row"><span class="num">${p.label} · No.${String(p.i + 1).padStart(2, '0')}</span><a href="#">읽기 →</a></p>`;
+}
+showPanel(null);
+
+/* ───────── 3D ───────── */
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+} catch (e) {
+  document.getElementById('fallback').hidden = false;
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(C.paper, 1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.domElement.setAttribute('aria-hidden', 'true');
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(C.paper, 10, 24);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+scene.add(new THREE.HemisphereLight(0xfffcf4, 0xd9d2c3, 1.25));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-5, 9, 7);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0xfff4e2, 0.35);
+rim.position.set(6, 2, -6);
+scene.add(rim);
+
+await document.fonts.load('400 76px "Noto Serif KR"', '가나다');
+await document.fonts.load('300 64px "Manrope"', '0123');
+const ANISO = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+const tex = (canvas) => { const t = new THREE.CanvasTexture(canvas); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = ANISO; return t; };
+const rand = (() => { let s = 1960; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
+
+/* 카드 앞면: 번호, 시리즈, 제목, 날짜. 종이 섬유 결을 아주 옅게. */
+function frontTexture(p) {
+  const w = 1024, h = 640, cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  g.fillStyle = C.sheet; g.fillRect(0, 0, w, h);
+  for (let k = 0; k < 2200; k++) { g.fillStyle = `rgba(110,98,78,${rand() * 0.05})`; g.fillRect(rand() * w, rand() * h, 1 + rand() * 2.5, 1); }
+  g.strokeStyle = C.linen; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, h - 3);
+  const s = SERIES[p.s];
+  g.fillStyle = C.taupe; g.font = '300 66px Manrope'; g.textBaseline = 'alphabetic';
+  g.fillText(String(p.i + 1).padStart(2, '0'), 64, 124);
+  g.fillStyle = s.color; g.font = '500 30px "Noto Serif KR"'; g.textAlign = 'right';
+  g.fillText(s.name, w - 64, 112);
+  g.fillStyle = C.linen; g.fillRect(64, 156, w - 128, 2);
+  g.textAlign = 'left'; g.fillStyle = C.ink; g.font = '400 70px "Noto Serif KR"';
+  const words = p.title.split(' '); const lines = []; let cur = '';
+  for (const word of words) { const t = cur ? cur + ' ' + word : word; if (g.measureText(t).width > w - 128 && cur) { lines.push(cur); cur = word; } else cur = t; }
+  lines.push(cur);
+  lines.slice(0, 3).forEach((l, k) => g.fillText(l, 64, 262 + k * 96));
+  g.fillStyle = C.linen; g.fillRect(64, h - 112, w - 128, 2);
+  g.fillStyle = C.caption; g.font = '400 30px Manrope'; g.fillText(p.label, 64, h - 58);
+  g.textAlign = 'right'; g.font = '400 30px "Noto Serif KR"'; g.fillText(`${p.ep}편`, w - 64, h - 58);
+  return tex(cv);
+}
+/* 카드 뒷면: 공책 줄. */
+const backTex = (() => {
+  const w = 512, h = 320, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d'); g.fillStyle = C.sheet; g.fillRect(0, 0, w, h);
+  g.fillStyle = 'rgba(166,157,141,.45)'; for (let y = 52; y < h; y += 26) g.fillRect(28, y, w - 56, 1);
+  g.fillStyle = 'rgba(156,126,94,.35)'; g.fillRect(70, 0, 1, h);
+  return tex(cv);
+})();
+
+/* 나선 배치 */
+const R = 2.9, TURN = 11, STEP = 0.3, TOP = (N - 1) * STEP;
+const RC = 3.5, CSTEP = 1.05;
+const CARD_W = 1.5, CARD_H = 0.94;
+const sAngle = (k) => k * Math.PI / 2;
+const cardGeo = new THREE.BoxGeometry(CARD_W, CARD_H, 0.014);
+const tabGeo = new THREE.BoxGeometry(0.3, 0.085, 0.014);
+
+const cards = POSTS.map((p) => {
+  // 조명 대신 종이 그대로(MeshBasic). 깊이는 안개와 각도에 따른 옅은 음영으로만 준다.
+  const edge = new THREE.MeshBasicMaterial({ color: '#E9E4D8', transparent: true });
+  const front = new THREE.MeshBasicMaterial({ map: frontTexture(p), transparent: true });
+  const back = new THREE.MeshBasicMaterial({ map: backTex, transparent: true });
+  const mesh = new THREE.Mesh(cardGeo, [edge, edge, edge, edge, front, back]);
+  const tabMat = new THREE.MeshBasicMaterial({ color: SERIES[p.s].color, transparent: true });
+  const tab = new THREE.Mesh(tabGeo, tabMat);
+  tab.position.set(-0.56 + p.s * 0.374, CARD_H / 2 + 0.036, 0); // 시리즈마다 다른 자리의 색인 탭
+  const group = new THREE.Group(); group.add(mesh, tab); scene.add(group);
+  mesh.userData.card = p.i;
+  const a0 = p.i * (Math.PI * 2 / TURN);
+  return { p, group, mesh, mats: [edge, front, back, tabMat], a0, y0: p.i * STEP, a1: sAngle(p.s), y1: (p.ep - 1) * CSTEP, hover: 0, op: 1 };
+});
+
+/* 실: 카드 안쪽 가장자리에서 연필까지 */
+const threadGeo = new THREE.BufferGeometry();
+const tPos = new Float32Array(N * 6), tCol = new Float32Array(N * 8);
+threadGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
+threadGeo.setAttribute('color', new THREE.BufferAttribute(tCol, 4));
+scene.add(new THREE.LineSegments(threadGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true })));
+const taupe = new THREE.Color(C.taupe);
+
+/* 바닥: 원형으로 흐려지는 원고지 칸 */
+const FLOOR = -0.72;
+(() => {
+  const n = 2048, cv = document.createElement('canvas'); cv.width = cv.height = n;
+  const g = cv.getContext('2d');
+  g.strokeStyle = 'rgba(166,157,141,.55)'; g.lineWidth = 2;
+  const cell = n / 36;
+  for (let k = 0; k <= 36; k++) { g.beginPath(); g.moveTo(k * cell, 0); g.lineTo(k * cell, n); g.stroke(); g.beginPath(); g.moveTo(0, k * cell); g.lineTo(n, k * cell); g.stroke(); }
+  g.strokeStyle = 'rgba(79,89,76,.35)'; g.lineWidth = 2.5;
+  g.beginPath(); g.arc(n / 2, n / 2, R / 20 * n, 0, Math.PI * 2); g.stroke();
+  g.globalCompositeOperation = 'destination-in';
+  const rg = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+  rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(0.45, 'rgba(0,0,0,.75)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, n, n);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshBasicMaterial({ map: tex(cv), transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = FLOOR; scene.add(m);
+})();
+
+/* 연필: 지우개를 바닥에 두고 서서, 심이 가장 최근 글을 가리킨다 */
+const pencil = new THREE.Group(); scene.add(pencil);
+const bodyTex = (() => {
+  const w = 512, h = 2048, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  g.fillStyle = C.olive; g.fillRect(0, 0, w, h);
+  g.save(); g.translate(w / 12 + 14, 60); g.rotate(Math.PI / 2);
+  g.fillStyle = '#E6DCC0'; g.font = '500 30px Manrope'; g.fillText('THEREFORE', 0, 0);
+  g.font = '400 26px "Noto Serif KR"'; g.fillText('그러므로', 210, 0);
+  g.font = '500 26px Manrope'; g.fillText('HB', 360, 0);
+  g.restore();
+  const t = tex(cv); t.wrapT = THREE.ClampToEdgeWrapping; return t;
+})();
+const TEXT_LEN = 3.2;
+const body = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 1, 6), new THREE.MeshStandardMaterial({ map: bodyTex, roughness: 0.55, metalness: 0.05, flatShading: true }));
+const wood = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.152, 0.52, 48, 1, true), new THREE.MeshStandardMaterial({ color: '#D8C09A', roughness: 0.85 }));
+const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.0, 0.034, 0.11, 32), new THREE.MeshStandardMaterial({ color: '#2D2C29', roughness: 0.35, metalness: 0.45 }));
+const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.172, 0.172, 0.28, 48), new THREE.MeshStandardMaterial({ color: '#C2BCAE', roughness: 0.32, metalness: 0.35 }));
+const eraser = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.162, 0.2, 48), new THREE.MeshStandardMaterial({ color: '#C9A69C', roughness: 0.95 }));
+pencil.add(body, wood, lead, ferrule, eraser);
+eraser.position.y = FLOOR + 0.1;
+ferrule.position.y = FLOOR + 0.2 + 0.14;
+for (const dy of [0.05, 0.1, 0.18, 0.23]) {
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.173, 0.006, 8, 48), ferrule.material);
+  ring.rotation.x = Math.PI / 2; ring.position.y = FLOOR + 0.2 + dy; pencil.add(ring);
+}
+function layoutPencil(top) {
+  const b0 = FLOOR + 0.48, b1 = Math.max(b0 + 0.4, top - 0.63);
+  const L = b1 - b0;
+  body.scale.y = L; body.position.y = b0 + L / 2;
+  bodyTex.repeat.set(1, L / TEXT_LEN); bodyTex.offset.set(0, 1 - L / TEXT_LEN);
+  wood.position.y = b1 + 0.26; lead.position.y = b1 + 0.52 + 0.055;
+}
+
+/* 분필 가루처럼 천천히 떠오르는 점 */
+const dust = (() => {
+  const n = 320, pos = new Float32Array(n * 3);
+  for (let k = 0; k < n; k++) { const r = 0.6 + Math.sqrt(rand()) * 6.5, a = rand() * Math.PI * 2; pos.set([Math.sin(a) * r, FLOOR + rand() * (TOP + 3), Math.cos(a) * r], k * 3); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+  const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32); rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: C.taupe, size: 0.055, map: tex(cv), transparent: true, opacity: 0.6, depthWrite: false }));
+  scene.add(pts); return { pts, pos, n };
+})();
+
+/* 과목별 기둥 아래 이름표 */
+const plates = SERIES.map((s, k) => {
+  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256; const g = cv.getContext('2d');
+  g.fillStyle = s.color; g.fillRect(0, 34, 120, 14);
+  g.fillStyle = C.ink; g.font = '400 72px "Noto Serif KR"'; g.fillText(s.name, 0, 140);
+  g.fillStyle = C.caption; g.font = '400 40px Manrope'; g.fillText(`${s.topic} · ${s.count}`, 0, 210);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: tex(cv), transparent: true, opacity: 0, depthWrite: false }));
+  const a = sAngle(k);
+  m.position.set(Math.sin(a) * (RC + 1.15), FLOOR + 0.02, Math.cos(a) * (RC + 1.15));
+  m.rotation.order = 'YXZ'; m.rotation.set(-Math.PI / 2, a, 0); // 바닥에 누워, 바깥에서 읽힌다
+  scene.add(m); return m;
+});
+
+/* ───────── 상태와 조작 ───────── */
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerpAngle = (a, b, k) => { let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + d * k; };
+const MORPH_STAGGER = 0.022, MORPH_DUR = 1.15, MORPH_TOTAL = (N - 1) * MORPH_STAGGER + MORPH_DUR;
+const st = {
+  build: reduced ? N : 0, morphT: 0, mode: 0,
+  az: ((N - 1) * (Math.PI * 2 / TURN)) % (Math.PI * 2) - 0.25, azV: 0, azT: null, y: reduced ? TOP : 0, yT: TOP, elev: 0.13, dist: 12, baseDist: 12,
+  hover: -1, sel: -1, filter: -1, dragging: false, lastInput: -1e9, visible: true,
+};
+
+function fit() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  const v = THREE.MathUtils.degToRad(camera.fov) / 2, hh = Math.atan(Math.tan(v) * camera.aspect);
+  st.baseDist = Math.max(11.5, (R + 1.5) / Math.tan(hh));
+}
+fit(); new ResizeObserver(fit).observe(stage);
+new IntersectionObserver((e) => { st.visible = e[0].isIntersecting; }).observe(stage);
+
+function setMode(m) {
+  st.mode = m; st.sel = -1; st.azT = null;
+  document.getElementById('mode-time').setAttribute('aria-pressed', String(m === 0));
+  document.getElementById('mode-subject').setAttribute('aria-pressed', String(m === 1));
+  ruler.hidden = m === 1;
+  if (reduced) st.morphT = m ? MORPH_TOTAL : 0;
+  // 과목별 기둥은 두 기둥 사이에서 바라본다(정면에 기둥이 서서 연필을 가리지 않게).
+  if (m === 1) { const q = Math.PI / 2; st.azT = Math.round((st.az - q / 2) / q) * q + q / 2; setTimeout(() => { if (st.mode === 1 && st.sel < 0) st.azT = null; }, 1600); }
+  showPanel(null);
+}
+document.getElementById('mode-time').onclick = () => setMode(0);
+document.getElementById('mode-subject').onclick = () => setMode(1);
+legend.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const k = +b.dataset.k; st.filter = st.filter === k ? -1 : k;
+  legend.classList.toggle('filtered', st.filter >= 0);
+  legend.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(+x.dataset.k === st.filter)));
+});
+
+function select(i) {
+  st.sel = i;
+  if (i < 0) { showPanel(null); return; }
+  const c = cards[i], k = st.mode;
+  st.azT = k ? c.a1 : c.a0;
+  st.yT = k ? c.y1 : c.y0;
+  showPanel(c.p, true);
+}
+
+/* 자(ruler): 달마다 긴 눈금, 글마다 짧은 눈금 */
+(() => {
+  const bodyEl = ruler.querySelector('.body');
+  let lastM = -1;
+  POSTS.forEach((p) => {
+    const t = document.createElement('span'); const m = p.date.getUTCMonth();
+    t.className = 'tick' + (m !== lastM ? ' m' : ''); t.style.bottom = `${p.i / (N - 1) * 100}%`; bodyEl.append(t);
+    if (m !== lastM) { const l = document.createElement('span'); l.className = 'lab'; l.textContent = `${m + 1}월`; l.style.bottom = `${p.i / (N - 1) * 100}%`; ruler.append(l); lastM = m; }
+  });
+  const now = document.createElement('span'); now.className = 'now'; ruler.append(now); st.nowEl = now;
+  const setFrom = (e) => { const r = ruler.getBoundingClientRect(); st.yT = clamp(1 - (e.clientY - r.top) / r.height) * TOP; st.sel = -1; st.azT = null; st.lastInput = performance.now(); };
+  ruler.addEventListener('pointerdown', (e) => { ruler.setPointerCapture(e.pointerId); setFrom(e); ruler.onpointermove = setFrom; });
+  ruler.addEventListener('pointerup', () => { ruler.onpointermove = null; });
+})();
+
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+const meshes = cards.map((c) => c.mesh);
+function pick(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(meshes)[0];
+  return hit ? hit.object.userData.card : -1;
+}
+const cvs = renderer.domElement;
+let down = null;
+cvs.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, moved: 0, type: e.pointerType }; st.dragging = true; cvs.classList.add('grabbing'); cvs.setPointerCapture(e.pointerId); });
+cvs.addEventListener('pointermove', (e) => {
+  if (down) {
+    const dx = e.clientX - down.x, dy = e.clientY - down.y; down.moved += Math.abs(dx) + Math.abs(dy);
+    st.azV = -dx * 0.0042; st.az += -dx * 0.0042; st.azT = null;
+    if (down.type !== 'touch' && st.mode === 0) { st.yT = clamp(st.yT + dy * 0.012, 0, TOP); }
+    down.x = e.clientX; down.y = e.clientY; st.lastInput = performance.now();
+    return;
+  }
+  const i = pick(e); st.hover = i; cvs.classList.toggle('pointing', i >= 0);
+  if (st.sel < 0) showPanel(i >= 0 ? POSTS[i] : null, i >= 0);
+});
+const release = (e) => {
+  if (!down) return;
+  if (down.moved < 6) select(pick(e));
+  down = null; st.dragging = false; cvs.classList.remove('grabbing'); st.lastInput = performance.now();
+};
+cvs.addEventListener('pointerup', release);
+cvs.addEventListener('pointercancel', () => { down = null; st.dragging = false; cvs.classList.remove('grabbing'); });
+cvs.addEventListener('pointerleave', () => { if (!down) { st.hover = -1; cvs.classList.remove('pointing'); if (st.sel < 0) showPanel(null); } });
+stage.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    const cur = st.sel >= 0 ? st.sel : N;
+    select(clamp(cur + (e.key === 'ArrowUp' ? 1 : -1), 0, N - 1));
+  } else if (e.key === 'Escape') select(-1);
+});
+
+/* ───────── 매 프레임 ───────── */
+const v3 = new THREE.Vector3(), nrm = new THREE.Vector3(), dir = new THREE.Vector3();
+let last = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!st.visible) return;
+
+  // 처음: 카드가 아래에서부터 한 장씩 쌓이고, 카메라와 연필심이 함께 올라간다.
+  if (st.build < N) { st.build = Math.min(N, st.build + dt * 9.5); st.yT = Math.max(0, (st.build - 1) * STEP); }
+  // 시간의 나선 ↔ 과목별 기둥
+  if (!reduced) st.morphT = clamp(st.morphT + (st.mode ? dt : -dt), 0, MORPH_TOTAL);
+  const mk = st.morphT / MORPH_TOTAL;
+
+  // 카메라
+  const idle = !st.dragging && now - st.lastInput > 2600;
+  if (st.azT !== null) st.az = lerpAngle(st.az, st.azT, 0.07);
+  else { st.az += st.azV; st.azV *= 0.92; if (idle && !reduced && st.sel < 0) st.az += dt * 0.07; }
+  if (st.mode === 1 && st.sel < 0) st.yT = 3.2;
+  st.y += (st.yT - st.y) * (reduced ? 1 : 0.07);
+  const distT = st.baseDist + (st.mode ? 7 : 0) - (st.sel >= 0 ? 4.2 : 0);
+  st.dist += (distT - st.dist) * 0.06;
+  const elevT = st.mode ? 0.24 : (st.sel >= 0 ? 0.05 : 0.2);
+  st.elev += (elevT - st.elev) * 0.06;
+  camera.position.set(Math.sin(st.az) * st.dist * Math.cos(st.elev), st.y + Math.sin(st.elev) * st.dist, Math.cos(st.az) * st.dist * Math.cos(st.elev));
+  camera.lookAt(0, st.y - (st.mode || st.sel >= 0 ? 0 : 0.9), 0);
+  scene.fog.near = st.dist - 2.5; scene.fog.far = st.dist + 11;
+
+  // 카드
+  let topY = 0;
+  cards.forEach((c, i) => {
+    const appear = ease(clamp(st.build - i));
+    const k = ease(clamp((st.morphT - i * MORPH_STAGGER) / MORPH_DUR));
+    const a = lerpAngle(c.a0, c.a1, k);
+    const r = THREE.MathUtils.lerp(R, RC, k) + Math.sin(k * Math.PI) * 1.1;
+    let y = THREE.MathUtils.lerp(c.y0, c.y1, k) + Math.sin(k * Math.PI) * 0.5 - (1 - appear) * 1.4;
+    const hv = (i === st.hover && !st.dragging) || i === st.sel ? 1 : 0;
+    c.hover += (hv - c.hover) * 0.16;
+    const push = c.hover * (i === st.sel ? 0.55 : 0.3);
+    c.group.position.set(Math.sin(a) * (r + push), y, Math.cos(a) * (r + push));
+    c.group.rotation.set(0, 0, 0);
+    c.group.rotation.y = a;
+    c.group.rotateX(-0.07 * (1 - k) + ease(k) * Math.PI * 2 * (st.mode ? 1 : -1) * (k > 0 && k < 1 ? 1 : 0));
+    c.group.scale.setScalar(1 + c.hover * 0.06);
+    const target = (st.filter < 0 || st.filter === c.p.s ? 1 : 0.1) * appear;
+    c.op += (target - c.op) * 0.12;
+    for (const m of c.mats) { m.opacity = c.op; m.depthWrite = c.op > 0.95; }
+    // 각도에 따른 옅은 음영: 정면일수록 밝고, 비스듬할수록 살짝 어둡다.
+    c.group.getWorldDirection(nrm); dir.subVectors(camera.position, c.group.position).normalize();
+    const shade = 0.84 + 0.16 * Math.abs(nrm.dot(dir));
+    c.mats[1].color.setScalar(shade); c.mats[2].color.setScalar(shade * 0.98);
+    if (appear > 0.01) topY = Math.max(topY, THREE.MathUtils.lerp(c.y0, c.y1, k));
+    // 실
+    const ia = i * 6;
+    v3.set(Math.sin(a) * (r + push - 0.02), y, Math.cos(a) * (r + push - 0.02));
+    tPos[ia] = v3.x; tPos[ia + 1] = v3.y; tPos[ia + 2] = v3.z;
+    tPos[ia + 3] = Math.sin(a) * 0.18; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * 0.18;
+    const al = c.op * 0.5 * (1 - k);
+    for (const o of [0, 4]) { tCol[i * 8 + o] = taupe.r; tCol[i * 8 + o + 1] = taupe.g; tCol[i * 8 + o + 2] = taupe.b; tCol[i * 8 + o + 3] = al; }
+  });
+  threadGeo.attributes.position.needsUpdate = true; threadGeo.attributes.color.needsUpdate = true;
+  layoutPencil(Math.max(topY, 0) + 0.85);
+  plates.forEach((m) => { m.material.opacity = clamp(mk * 1.6 - 0.6); });
+
+  // 가루
+  if (!reduced) {
+    for (let k = 0; k < dust.n; k++) { const j = k * 3 + 1; dust.pos[j] += dt * (0.05 + (k % 7) * 0.012); if (dust.pos[j] > TOP + 2.5) dust.pos[j] = FLOOR; }
+    dust.pts.geometry.attributes.position.needsUpdate = true;
+    dust.pts.rotation.y += dt * 0.01;
+  }
+
+  if (st.nowEl) st.nowEl.style.bottom = `${clamp(st.y / TOP) * 100}%`;
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(frame);
+window.__spiral = { st, select, setMode, TOP, N };
+</script>

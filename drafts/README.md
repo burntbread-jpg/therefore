@@ -16,3 +16,10 @@
   - 받는 법: `npm pack three@0.186.1` 후 `build/three.module.js`, `build/three.core.js`, `examples/jsm/controls/OrbitControls.js`를 `vendor/`(컨트롤은 `vendor/addons/controls/`)에 복사.
 - ES 모듈이라 `file://`로는 열리지 않는다. `python3 -m http.server`로 열 것.
 - 스크린샷: `shots/c-3d-{scatter,mid,settled}-{1440,390}.png`. `window.__manuscript.set(0~1)`로 진행도를 정해 찍었다.
+
+## 시안 D: 나선형 교육과정 (글 목록 3D, 현재 안)
+
+- `d-spiral.html`: 게시용 단일 파일(문서 뼈대 없이 시작). `d-spiral.local.html`은 로컬 확인용(뼈대 추가).
+- 로컬 확인: `python3 -m http.server`로 열고, jsDelivr가 막힌 환경이면 three.js 요청을 `vendor/`로 돌려 준다.
+- 스크린샷: `shots/d-{build,helix,select,subject-mid,subject}-{1440,390}.png`, `shots/d-full-1440.png`.
+- 시안 C-3D(원고지가 모이는 장면)는 쓰지 않기로 했다(원고지는 2D 고정).
