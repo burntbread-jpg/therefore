@@ -16,7 +16,7 @@
 | 제작 방식 | Git + MDX (ELSEWHERE 방식). DB·로그인·편집 화면 없음 |
 | 저장소 | `burntbread-jpg/therefore`, 공개(2026-11-19 생성). 그전 작업은 Google Drive `THEREFORE` 폴더에도 백업해 두었다 |
 | 글 구성 | **시리즈(연재) 중심**. 세부 분류는 나중에 다듬는다 |
-| 기획 문서 위치 | 저장소 문서(README, 이 파일). 저장소가 생기기 전까지는 Google Drive `THEREFORE` 폴더에 사본을 둔다 |
+| 기획 문서 위치 | 저장소 문서(README, 이 파일) |
 
 ### 제목을 THEREFORE로 고른 이유
 
