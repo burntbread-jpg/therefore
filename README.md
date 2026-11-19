@@ -25,7 +25,7 @@ pnpm build     # dist/ 에 정적 사이트
 pnpm check     # 타입 검사
 ```
 
-배포 주소가 정해지면 환경 변수 `SITE_URL`(예: `https://therefore.example.com`)을 넣는다. RSS와 `/feed.json`의 전체 주소에 쓰인다.
+배포 주소: https://therefore-seven.vercel.app (Vercel, `main`에 올리면 자동 배포). 주소를 바꾸면 `astro.config.mjs`의 `site`나 환경 변수 `SITE_URL`을 고친다.
 
 ## 글 쓰는 법
 

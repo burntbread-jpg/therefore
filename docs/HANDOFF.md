@@ -124,9 +124,10 @@ AGAIN은 '복습'과 뜻이 가장 잘 맞지만, 사용자는 결국 자매 사
 1. (완료) 홈 시안 → 시안 D 나선형 교육과정 → 평가 1~10 반영 → `main` 병합.
 2. (진행) Astro 사이트 1차 제작: 브랜치 `feat/astro-site`. 예시 글 30편, 예시 연재 4개. 화면은 `docs/screens/`.
 3. 남은 일
-   - 사용자 확인 후 `feat/astro-site`를 `main`에 병합.
-   - Vercel 연결과 배포 주소, `SITE_URL` 설정 **[확인 필요]**
-   - 실제 시리즈 이름과 첫 글 **[확인 필요]**
+   - (완료) `feat/astro-site`를 `main`에 병합.
+   - (완료) Vercel 배포: https://therefore-seven.vercel.app , `main`에 올리면 자동 배포. 주소는 `astro.config.mjs`의 `site`에 기본값으로 넣었다.
+   - 배포 화면을 클라우드 세션에서 확인하려면 환경 `therefore`(배포 주소와 cdn.jsdelivr.net 허용, pnpm install 준비 스크립트)를 골라 세션을 시작한다.
+   - (완료) 첫 연재 `therefore`, 첫 글 「육각형론」(제목만, `/notes/hexagon/`). 날짜는 2026-11-19로 임시, 형식은 기본값 '긴 글' **[확인 필요]**. 예시 글 30편·연재 4개는 사이트에서 자동으로 빠졌고 파일은 남아 있다.
    - 부제 카피 출처를 소개 페이지에 밝힐지 **[확인 필요]** (지금은 밝히지 않음, `src/pages/about.astro`에 메모)
    - HERE 공개 주소가 생기면 바닥글의 HERE에 링크
 
