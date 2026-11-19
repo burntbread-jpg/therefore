@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGAIN — 시안 B 시간표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;500&family=Manrope:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  :root { --paper: #F4F4F1; --serif: "Hahmlet", serif; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 48px; }
+
+  header { display: grid; grid-template-columns: 1fr auto; align-items: end; padding: 48px 0 20px; border-bottom: 1px solid var(--ink); }
+  .mark { font: 300 64px/1 var(--latin); letter-spacing: 0.06em; }
+  .mark small { display: block; font: 400 15px/1 var(--serif); letter-spacing: 0.02em; color: var(--caption); margin-top: 14px; }
+  nav { display: flex; gap: 28px; font: 400 13px/1 var(--latin); color: var(--caption); padding-bottom: 4px; }
+
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 64px; padding-top: 56px; }
+
+  .copy { font: 400 30px/1.5 var(--serif); letter-spacing: -0.01em; padding-bottom: 48px; }
+
+  .tt-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+  .tt-head h2 { font: 500 15px/1 var(--serif); }
+  .tt-head span { font-size: 12px; color: var(--caption); }
+
+  .tt { border-collapse: collapse; width: 100%; }
+  .tt td { border-bottom: 1px solid var(--linen); padding: 22px 0; vertical-align: baseline; }
+  .tt td.p { width: 96px; font: 400 13px/1 var(--serif); color: var(--caption); border-right: 1px solid var(--linen); }
+  .tt td.p b { font: 400 22px/1 var(--latin); color: var(--ink); margin-right: 4px; font-variant-numeric: tabular-nums; }
+  .tt td.s { width: 110px; padding-left: 24px; font: 400 13px/1.5 var(--serif); color: var(--olive); }
+  .tt td.t { font: 400 21px/1.45 var(--serif); }
+  .tt td.t small { display: block; font: 400 14px/1.6 var(--sans); color: var(--caption); margin-top: 4px; }
+  .tt td.f { width: 64px; font-size: 13px; color: var(--caption); }
+  .tt td.d { width: 100px; text-align: right; font-size: 13px; color: var(--caption); }
+
+  aside { border-left: 1px solid var(--linen); padding-left: 32px; }
+  aside h3 { font: 500 15px/1 var(--serif); padding-bottom: 12px; border-bottom: 1px solid var(--ink); margin-bottom: 8px; }
+  aside section + section { margin-top: 48px; }
+  .subjects li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--linen); font: 400 17px/1.4 var(--serif); }
+  .subjects li span { font-size: 13px; color: var(--taupe); }
+  .notice p { font-size: 15px; color: var(--caption); padding: 8px 0; }
+  .notice p + p { border-top: 1px dashed var(--linen); }
+
+  footer { margin-top: 120px; border-top: 1px solid var(--ink); padding: 20px 0 48px; display: flex; justify-content: space-between; font: 400 12px/1.6 var(--latin); letter-spacing: 0.12em; color: var(--caption); }
+  footer b { font-weight: 500; color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 0 16px; }
+    header { grid-template-columns: 1fr; padding: 32px 0 16px; }
+    .mark { font-size: 40px; }
+    .mark small { font-size: 14px; margin-top: 10px; }
+    nav { margin-top: 24px; gap: 20px; flex-wrap: wrap; }
+    .layout { grid-template-columns: 1fr; gap: 56px; padding-top: 36px; }
+    .copy { font-size: 22px; padding-bottom: 32px; }
+    .tt, .tt tbody, .tt tr { display: block; }
+    .tt tr { display: grid; grid-template-columns: 64px 1fr; gap: 2px 12px; padding: 16px 0; border-bottom: 1px solid var(--linen); }
+    .tt td { display: block; border: 0; padding: 0; width: auto !important; }
+    .tt td.p { grid-row: span 3; border: 0; font-size: 12px; }
+    .tt td.p b { display: block; font-size: 20px; margin-bottom: 4px; }
+    .tt td.s { padding: 0; font-size: 12px; order: 1; }
+    .tt td.t { font-size: 18px; order: 2; }
+    .tt td.f, .tt td.d { display: inline; text-align: left; font-size: 12px; }
+    .tt td.f { order: 3; }
+    .tt td.d { order: 3; }
+    aside { border: 0; padding: 0; }
+    footer { flex-direction: column; gap: 8px; margin-top: 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="mark">AGAIN<small>다시</small></div>
+  <nav><a href="#">글</a><a href="#">과목</a><a href="#">연재</a><a href="#">소개</a><a href="#">RSS</a></nav>
+</header>
+
+<div class="layout">
+  <main>
+    <p class="copy">인생은 초등학교에서 배운 것의<br>복습이란다.</p>
+
+    <div class="tt-head"><h2>이번 주 시간표</h2><span class="num">2026.11.16 – 11.20</span></div>
+    <table class="tt"><tbody>
+      <tr><td class="p"><b>1</b>교시</td><td class="s">교육론</td><td class="t">아이에게 ‘왜’를 묻게 하는 법<small>대답보다 질문을 먼저 가르치는 교실에 대하여.</small></td><td class="f">긴 글</td><td class="d num">11.18</td></tr>
+      <tr><td class="p"><b>2</b>교시</td><td class="s">AI 활용</td><td class="t">AI에게 숙제를 시키면 무엇을 배우나<small>도구가 대신하는 것과 대신할 수 없는 것.</small></td><td class="f">긴 글</td><td class="d num">11.12</td></tr>
+      <tr><td class="p"><b>3</b>교시</td><td class="s">생각 노트</td><td class="t">받아쓰기의 쓸모</td><td class="f">메모</td><td class="d num">11.07</td></tr>
+      <tr><td class="p"><b>4</b>교시</td><td class="s">AI 활용</td><td class="t">프롬프트는 질문하는 연습이다</td><td class="f">메모</td><td class="d num">11.02</td></tr>
+      <tr><td class="p"><b>5</b>교시</td><td class="s">교육론</td><td class="t">좋은 선생님은 늦게 대답한다</td><td class="f">긴 글</td><td class="d num">10.27</td></tr>
+      <tr><td class="p"><b>6</b>교시</td><td class="s">생각 노트</td><td class="t">복습에 관하여</td><td class="f">메모</td><td class="d num">10.20</td></tr>
+    </tbody></table>
+  </main>
+
+  <aside>
+    <section>
+      <h3>과목</h3>
+      <ul class="subjects"><li>교육론<span class="num">12</span></li><li>AI 활용<span class="num">9</span></li><li>생각 노트<span class="num">21</span></li></ul>
+    </section>
+    <section>
+      <h3>연재</h3>
+      <ul class="subjects"><li>다시 쓰는 교과서<span class="num">4</span></li><li>AI와 함께 공부하기<span class="num">3</span></li></ul>
+    </section>
+    <section class="notice">
+      <h3>알림장</h3>
+      <p>배운 것을 다시 꺼내 보는 글을 씁니다.</p>
+      <p>새 글은 RSS로 받아 볼 수 있습니다.</p>
+    </section>
+  </aside>
+</div>
+
+<footer>
+  <span>ELSEWHERE · HERE · <b>AGAIN</b></span>
+  <span class="num">© 2026</span>
+</footer>
+</div>
+<div class="draft-tag">DRAFT B · 예시 글</div>
+</body>
+</html>

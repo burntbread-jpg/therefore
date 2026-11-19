@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGAIN — 시안 A 목차</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&family=Noto+Serif+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+  header.top { border-bottom: 1px solid var(--ink); }
+  header.top .wrap { display: flex; justify-content: space-between; align-items: baseline; height: 64px; align-items: center; }
+  .mark { font: 500 14px/1 var(--latin); letter-spacing: 0.28em; }
+  .mark small { font: 400 13px/1 var(--serif); letter-spacing: 0; color: var(--caption); margin-left: 12px; }
+  nav { display: flex; gap: 32px; font: 400 13px/1 var(--latin); letter-spacing: 0.06em; color: var(--caption); }
+
+  .hero { padding: 120px 0 96px; display: grid; grid-template-columns: 160px 1fr; gap: 0 48px; }
+  .hero .label { font: 400 12px/1.6 var(--latin); letter-spacing: 0.14em; color: var(--caption); padding-top: 14px; }
+  .hero h1 { font: 400 56px/1.35 var(--serif); letter-spacing: -0.02em; max-width: 14em; }
+  .hero h1 em { font-style: normal; color: var(--olive); }
+  .hero p { grid-column: 2; margin-top: 32px; color: var(--caption); font-size: 15px; }
+
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--ink); padding: 16px 0; }
+  .sec-head h2 { font: 500 13px/1 var(--latin); letter-spacing: 0.18em; }
+  .sec-head a { font: 400 13px/1 var(--latin); color: var(--caption); }
+
+  .list li { display: grid; grid-template-columns: 160px 1fr 120px 80px 110px; gap: 0 48px; align-items: baseline; padding: 22px 0; border-top: 1px solid var(--linen); }
+  .list .no { font-size: 13px; color: var(--taupe); }
+  .list .t { font: 400 22px/1.45 var(--serif); }
+  .list .d { display: block; font: 400 14px/1.6 var(--sans); color: var(--caption); margin-top: 6px; }
+  .list .meta { font-size: 13px; color: var(--caption); }
+  .list .date { font-size: 13px; color: var(--caption); text-align: right; }
+
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin: 96px 0 0; border-top: 1px solid var(--ink); padding-top: 24px; }
+  .cols h3 { font: 500 12px/1 var(--latin); letter-spacing: 0.18em; color: var(--caption); margin-bottom: 20px; }
+  .cols li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--linen); font: 400 17px/1.5 var(--serif); }
+  .cols li span { font-family: var(--latin); font-size: 13px; color: var(--taupe); }
+  .cols p { font-size: 15px; color: var(--caption); }
+  .cols p + p { margin-top: 12px; }
+
+  footer { margin-top: 120px; border-top: 1px solid var(--ink); }
+  footer .wrap { display: flex; justify-content: space-between; padding-top: 20px; padding-bottom: 48px; font: 400 12px/1.6 var(--latin); letter-spacing: 0.12em; color: var(--caption); }
+  footer b { font-weight: 500; color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 0 16px; }
+    header.top .wrap { height: 56px; }
+    nav { display: none; }
+    .menu { font: 400 13px/1 var(--latin); color: var(--caption); }
+    .hero { grid-template-columns: 1fr; padding: 56px 0 56px; }
+    .hero .label { padding: 0 0 16px; }
+    .hero h1 { font-size: 32px; }
+    .hero p { grid-column: 1; margin-top: 20px; }
+    .list li { grid-template-columns: 36px auto auto 1fr; gap: 6px 10px; padding: 18px 0; }
+    .list .t { grid-column: 2 / -1; font-size: 18px; }
+    .list .meta, .list .date { grid-row: 2; font-size: 12px; text-align: left; }
+    .list .meta + .meta::before { content: "· "; }
+    .list .t + .meta { grid-column: 2; }
+    .list .meta + .meta { grid-column: 3; }
+    .list .date { grid-column: 4; }
+    .list .meta, .list .date { white-space: nowrap; }
+    .cols { grid-template-columns: 1fr; gap: 40px; margin-top: 64px; }
+    footer .wrap { flex-direction: column; gap: 8px; }
+  }
+  @media (min-width: 721px) { .menu { display: none; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="mark" href="#">AGAIN<small>다시</small></a>
+  <nav><a href="#">글</a><a href="#">분류</a><a href="#">연재</a><a href="#">소개</a><a href="#">RSS</a></nav>
+  <span class="menu">메뉴</span>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="label">AGAIN,</div>
+    <h1>인생은 초등학교에서 배운 것의 <em>복습</em>이란다</h1>
+    <p>교육과 AI, 그리고 그 밖의 생각을 적어 두는 곳.</p>
+  </section>
+
+  <div class="sec-head"><h2>RECENT NOTES</h2><a href="#">전체 글 →</a></div>
+  <ol class="list">
+    <li><span class="no num">01</span><a class="t" href="#">아이에게 ‘왜’를 묻게 하는 법<span class="d">대답보다 질문을 먼저 가르치는 교실에 대하여.</span></a><span class="meta">교육론</span><span class="meta">긴 글</span><span class="date num">2026.11.18</span></li>
+    <li><span class="no num">02</span><a class="t" href="#">AI에게 숙제를 시키면 무엇을 배우나<span class="d">도구가 대신하는 것과 대신할 수 없는 것.</span></a><span class="meta">AI 활용</span><span class="meta">긴 글</span><span class="date num">2026.11.12</span></li>
+    <li><span class="no num">03</span><a class="t" href="#">받아쓰기의 쓸모</a><span class="meta">생각 노트</span><span class="meta">메모</span><span class="date num">2026.11.07</span></li>
+    <li><span class="no num">04</span><a class="t" href="#">프롬프트는 질문하는 연습이다</a><span class="meta">AI 활용</span><span class="meta">메모</span><span class="date num">2026.11.02</span></li>
+    <li><span class="no num">05</span><a class="t" href="#">좋은 선생님은 늦게 대답한다<span class="d">기다림도 가르침의 한 형식이라는 생각.</span></a><span class="meta">교육론</span><span class="meta">긴 글</span><span class="date num">2026.10.27</span></li>
+    <li><span class="no num">06</span><a class="t" href="#">복습에 관하여</a><span class="meta">생각 노트</span><span class="meta">메모</span><span class="date num">2026.10.20</span></li>
+  </ol>
+
+  <section class="cols">
+    <div>
+      <h3>TOPICS</h3>
+      <ul><li>교육론<span>12</span></li><li>AI 활용<span>9</span></li><li>생각 노트<span>21</span></li></ul>
+    </div>
+    <div>
+      <h3>SERIES</h3>
+      <ul><li>다시 쓰는 교과서<span>4</span></li><li>AI와 함께 공부하기<span>3</span></li></ul>
+    </div>
+    <div>
+      <h3>ABOUT</h3>
+      <p>배운 것을 다시 꺼내 보는 글을 씁니다. 교육과 AI, 그리고 매일의 생각.</p>
+      <p class="latin">RSS 구독 →</p>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <span>ELSEWHERE · HERE · <b>AGAIN</b></span>
+  <span class="num">© 2026</span>
+</div></footer>
+<div class="draft-tag">DRAFT A · 예시 글</div>
+</body>
+</html>
