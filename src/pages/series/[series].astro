@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publicNotes, publicSeries, dateLabel, noteUrl, formatLabel, type NoteView, type Series } from '../../lib/notes';
+export async function getStaticPaths() {
+  const notes = await publicNotes();
+  const series = await publicSeries(notes);
+  return series.map((s) => ({ params: { series: s.id }, props: { s, list: notes.filter((n) => n.seriesEntry?.id === s.id) } }));
+}
+interface Props { s: Series; list: NoteView[] }
+const { s, list } = Astro.props;
+---
+<Base title={s.data.name} description={s.data.description}>
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="eyebrow">{s.data.topic} · <span class="num">{list.length}</span>편</p>
+      <h1>{s.data.name}</h1>
+      <p class="lede">{s.data.description}</p>
+    </header>
+    <ol class="rows">
+      {list.map((n) => <li><span class="n num">{String(n.ep).padStart(2, '0')}</span><a href={noteUrl(n)}><span class="t">{n.data.title}</span><span class="s">{formatLabel[n.data.format]}</span></a><span class="d num">{dateLabel(n.data.date)}</span></li>)}
+    </ol>
+  </div>
+</Base>

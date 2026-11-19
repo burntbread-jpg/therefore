@@ -1,0 +1,53 @@
+---
+import { dateLabel, isoDate, noteUrl, type NoteView, type Series } from '../lib/notes';
+interface Props { notes: NoteView[]; series: Series[] }
+const { notes, series } = Astro.props;
+// 연재에 속하지 않은 글이 있으면 '연재 밖 글'을 마지막 묶음으로 둔다.
+const groups = series.map((s) => ({ id: s.id, name: s.data.name, topic: s.data.topic, color: s.data.color }));
+if (notes.some((n) => !n.seriesEntry)) groups.push({ id: '', name: '연재 밖 글', topic: '', color: '#69655F' });
+const index = new Map(groups.map((g, k) => [g.id, k]));
+const data = {
+  series: groups.map((g) => ({ ...g, count: notes.filter((n) => (n.data.series?.id ?? '') === g.id).length })),
+  notes: notes.map((n) => ({ title: n.data.title, s: index.get(n.data.series?.id ?? '')!, ep: n.ep ?? 1, label: dateLabel(n.data.date), iso: isoDate(n.data.date), url: noteUrl(n) })),
+};
+const sample = notes.some((n) => n.data.sample);
+---
+<section class="board" aria-labelledby="board-h">
+  <div class="wrap">
+    <div class="board-head">
+      <h2 id="board-h">쌓이는 생각<span>SPIRAL</span></h2>
+      <div class="modes" role="group" aria-label="보는 방식">
+        <button type="button" id="mode-time" aria-pressed="true">시간의 나선</button>
+        <button type="button" id="mode-subject" aria-pressed="false">과목별 기둥</button>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="stage" tabindex="0" data-spiral={JSON.stringify(data)}
+    aria-label="글 카드가 연필을 감고 쌓여 올라가는 3D 나선. 드래그로 돌리고, 위아래로 끌어 시간을 오르내립니다. 위아래 화살표로 글을 고를 수 있습니다.">
+    <div class="legend"><p>SERIES</p></div>
+    <div class="ruler" aria-hidden="true"><span class="cap">TIME</span><div class="body"></div></div>
+    <div class="panel"></div>
+    <p class="sr announce" aria-live="polite"></p>
+    <p class="hint">드래그해 돌리기 · 위아래로 끌어 시간 이동<br />카드를 누르면 가까이 봅니다</p>
+    <div class="fallback" hidden>이 환경에서는 3D를 표시할 수 없습니다. 아래 ‘목록으로 보기’에서 글을 볼 수 있습니다.</div>
+  </div>
+  <div class="wrap">
+    <div class="board-foot">
+      <p>같은 과목으로 몇 번이고 돌아오되, 매번 조금 더 높은 곳에서. 브루너의 ‘나선형 교육과정’에서 빌린 모양입니다. 카드 한 장이 글 한 편이고, 새 글이 올라올 때마다 연필이 자랍니다.</p>
+      {sample && <span class="sample-note">지금 보이는 글은 레이아웃 확인용 예시입니다</span>}
+      <details>
+        <summary class="hit">목록으로 보기</summary>
+        <ol class="rows two">
+          {[...notes].reverse().map((n) => (
+            <li><span class="n num">{String(n.no).padStart(2, '0')}</span><a href={noteUrl(n)}><span class="t">{n.data.title}</span><span class="s">{n.seriesEntry ? `${n.seriesEntry.data.name} · ${n.ep}편` : '연재 밖 글'}</span></a><span class="d num">{dateLabel(n.data.date)}</span></li>
+          ))}
+        </ol>
+      </details>
+    </div>
+  </div>
+</section>
+<script>
+  import { initSpiral } from '../scripts/spiral.js';
+  const stage = document.getElementById('stage');
+  if (stage) initSpiral(stage).catch((e) => { console.error(e); stage.querySelector<HTMLElement>('.fallback')!.hidden = false; });
+</script>

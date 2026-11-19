@@ -1,0 +1,6 @@
+[
+  { "id": "textbook", "name": "다시 쓰는 교과서", "topic": "교육론", "color": "#4F594C", "description": "초등학교 교과서의 문장을 어른의 눈으로 다시 읽는다.", "order": 1, "sample": true },
+  { "id": "ai-study", "name": "AI와 함께 공부하기", "topic": "AI 활용", "color": "#5B6A78", "description": "AI를 도구로 쓰며 배운 것과, 그 사이 잃어버린 것.", "order": 2, "sample": true },
+  { "id": "good-questions", "name": "좋은 질문에 관하여", "topic": "교육론", "color": "#86684A", "description": "대답보다 질문을 먼저 가르치는 교실을 생각한다.", "order": 3, "sample": true },
+  { "id": "dictation", "name": "받아쓰기 노트", "topic": "짧은 생각", "color": "#24231F", "description": "길게 쓰기 전의 짧은 생각들.", "order": 4, "sample": true }
+]

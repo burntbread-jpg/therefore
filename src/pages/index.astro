@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import Manuscript from '../components/Manuscript.astro';
+import Spiral from '../components/Spiral.astro';
+import { publicNotes, publicSeries } from '../lib/notes';
+const notes = await publicNotes();
+const series = await publicSeries(notes);
+---
+<Base>
+  <div class="wrap"><Manuscript /></div>
+  <Spiral notes={notes} series={series} />
+</Base>

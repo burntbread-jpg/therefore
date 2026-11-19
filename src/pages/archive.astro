@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { publicNotes, dateLabel, noteUrl } from '../lib/notes';
+const notes = (await publicNotes()).reverse();
+const months = new Map<string, typeof notes>();
+for (const n of notes) { const k = `${n.data.date.getUTCFullYear()}년 ${n.data.date.getUTCMonth() + 1}월`; months.set(k, [...(months.get(k) ?? []), n]); }
+---
+<Base title="전체 글" description="THEREFORE의 모든 글">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="eyebrow">ARCHIVE · <span class="num">{notes.length}</span></p>
+      <h1>전체 글</h1>
+    </header>
+    {[...months].map(([month, list]) => (
+      <section style="margin-top:40px">
+        <h2 class="eyebrow" style="font:400 13px/1 var(--serif);padding-bottom:10px;border-bottom:1px solid var(--ink)">{month}</h2>
+        <ol class="rows">
+          {list.map((n) => <li><span class="n num">{String(n.no).padStart(2, '0')}</span><a href={noteUrl(n)}><span class="t">{n.data.title}</span><span class="s">{n.seriesEntry ? `${n.seriesEntry.data.name} · ${n.ep}편` : '연재 밖 글'}</span></a><span class="d num">{dateLabel(n.data.date)}</span></li>)}
+        </ol>
+      </section>
+    ))}
+  </div>
+</Base>

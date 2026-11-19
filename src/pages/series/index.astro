@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publicNotes, publicSeries, dateLabel, noteUrl } from '../../lib/notes';
+const notes = await publicNotes();
+const series = await publicSeries(notes);
+---
+<Base title="연재" description="THEREFORE의 연재 목록">
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">SERIES</p>
+      <h1>연재</h1>
+      <p class="lede">같은 주제로 몇 번이고 돌아와 쓰는 글의 묶음입니다.</p>
+    </header>
+    <ol class="series-list">
+      {series.map((s, k) => {
+        const list = notes.filter((n) => n.seriesEntry?.id === s.id);
+        return (
+          <li>
+            <span class="no num">{String(k + 1).padStart(2, '0')}</span>
+            <div>
+              <p class="meta"><i style={`background:${s.data.color}`}></i>{s.data.topic}</p>
+              <h2><a href={`/series/${s.id}/`}>{s.data.name}</a></h2>
+              <p class="desc">{s.data.description}</p>
+              <p class="count"><span class="num">{list.length}</span>편 · <a class="hit" href={`/series/${s.id}/`}>목차 →</a></p>
+            </div>
+            <ol class="rows">
+              {list.slice(-3).reverse().map((n) => <li><span class="n num">{String(n.ep).padStart(2, '0')}</span><a href={noteUrl(n)}><span class="t">{n.data.title}</span></a><span class="d num">{dateLabel(n.data.date)}</span></li>)}
+            </ol>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+</Base>

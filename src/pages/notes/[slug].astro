@@ -1,0 +1,41 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { publicNotes, dateLabel, noteUrl, formatLabel, type NoteView } from '../../lib/notes';
+export async function getStaticPaths() {
+  const notes = await publicNotes();
+  return notes.map((note) => {
+    const same = note.seriesEntry ? notes.filter((n) => n.seriesEntry?.id === note.seriesEntry!.id) : [];
+    const k = same.indexOf(note);
+    return { params: { slug: note.id }, props: { note, prev: k > 0 ? same[k - 1] : undefined, next: k >= 0 && k < same.length - 1 ? same[k + 1] : undefined } };
+  });
+}
+interface Props { note: NoteView; prev?: NoteView; next?: NoteView }
+const { note, prev, next } = Astro.props;
+const { Content } = await render(note);
+const s = note.seriesEntry;
+---
+<Base title={note.data.title} description={note.data.summary}>
+  <article class="wrap narrow">
+    <header class="note-head">
+      <p class="meta">
+        {s && <><i style={`background:${s.data.color}`}></i><a class="hit" href={`/series/${s.id}/`}>{s.data.name}</a><span>{note.ep}편</span></>}
+        <span>{formatLabel[note.data.format]}</span>
+        {note.data.sample && <span>예시 글</span>}
+      </p>
+      <h1>{note.data.title}</h1>
+      <p class="summary">{note.data.summary}</p>
+      <p class="date"><span class="num">{dateLabel(note.data.date)}</span><span class="num">No.{String(note.no).padStart(2, '0')}</span></p>
+    </header>
+    <div class="prose"><Content /></div>
+    <footer class="note-foot">
+      {s && (
+        <nav class="pn" aria-label="같은 연재의 이전·다음 글">
+          <div>{prev && <a href={noteUrl(prev)}><span>← 이전 편 · {prev.ep}편</span><b>{prev.data.title}</b></a>}</div>
+          <div class="next">{next && <a href={noteUrl(next)}><span>다음 편 · {next.ep}편 →</span><b>{next.data.title}</b></a>}</div>
+        </nav>
+      )}
+      <p class="back">{s ? <a class="hit" href={`/series/${s.id}/`}>{s.data.name} 목차</a> : <a class="hit" href="/archive/">전체 글</a>}</p>
+    </footer>
+  </article>
+</Base>

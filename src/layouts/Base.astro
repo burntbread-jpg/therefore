@@ -1,0 +1,48 @@
+---
+import '../styles/global.css';
+interface Props { title?: string; description?: string }
+const { title, description = '교육과 AI, 그리고 그 밖의 생각을 연재로 적어 두는 곳. 인생은 초등학교에서 배운 것의 복습이란다.' } = Astro.props;
+const fullTitle = title ? `${title} — THEREFORE` : 'THEREFORE · 그러므로';
+const links = [['/series/', '연재'], ['/archive/', '전체 글'], ['/about/', '소개'], ['/rss.xml', 'RSS']];
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#F6F3ED" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate" type="application/rss+xml" title="THEREFORE" href="/rss.xml" />
+  <link rel="alternate" type="application/feed+json" title="THEREFORE" href="/feed.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&family=Noto+Serif+KR:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+</head>
+<body>
+  <a class="skip" href="#main">본문으로 건너뛰기</a>
+  <div class="wrap">
+    <header class="site-header">
+      <a class="mark" href="/" aria-label="THEREFORE 홈">THEREFORE<small>그러므로</small></a>
+      <nav class="site-nav" aria-label="주 메뉴">
+        {links.map(([href, label]) => <a href={href} aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>)}
+      </nav>
+    </header>
+  </div>
+  <main id="main"><slot /></main>
+  <div class="wrap">
+    <footer class="site-footer">
+      <span>
+        <a href="https://elsewhere-travel-archive.vercel.app/">ELSEWHERE</a> · <span title="공개 주소 준비 중">HERE</span> · <b>THEREFORE</b>
+      </span>
+      <span class="num">© {new Date().getFullYear()} THEREFORE</span>
+    </footer>
+  </div>
+</body>
+</html>

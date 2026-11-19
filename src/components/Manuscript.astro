@@ -1,0 +1,13 @@
+---
+// 부제를 12칸 원고지 두 줄에 쓴다. 마침표는 원고지 규칙대로 한 칸, 칸의 왼쪽 아래.
+const ROWS = ['인생은 초등학교에서', '배운 것의 복습이란다.'];
+const cells = ROWS.flatMap((r) => [...r.padEnd(12, ' ')]);
+---
+<section class="hero" aria-labelledby="hero-h">
+  <h1 id="hero-h" class="sr">인생은 초등학교에서 배운 것의 복습이란다.</h1>
+  <p class="w" aria-hidden="true">THEREFORE</p>
+  <div class="grid" aria-hidden="true">
+    {cells.map((ch) => ch === ' ' ? <span></span> : ch === '.' ? <span class="pt">.</span> : <span>{ch}</span>)}
+  </div>
+  <p class="sub">교육과 AI, 그리고 그 밖의 생각을 연재로 적어 두는 곳.</p>
+</section>
