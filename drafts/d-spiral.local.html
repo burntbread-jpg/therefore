@@ -174,9 +174,10 @@ footer b { font-weight: 500; color: var(--ink); }
   </footer>
 </div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 /* ───────── 데이터 (예시) ───────── */
 const C = { paper: '#F6F3ED', sheet: '#FBF9F4', linen: '#E4E0D6', taupe: '#A69D8D', olive: '#4F594C', ink: '#24231F', caption: '#69655F' };
@@ -247,8 +248,8 @@ stage.prepend(renderer.domElement);
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(C.paper, 10, 24);
 const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-scene.add(new THREE.HemisphereLight(0xfffcf4, 0xd9d2c3, 1.25));
-const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+scene.add(new THREE.HemisphereLight(0xfffcf4, 0xd9d2c3, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 1.1);
 sun.position.set(-5, 9, 7);
 scene.add(sun);
 const rim = new THREE.DirectionalLight(0xfff4e2, 0.35);
@@ -343,38 +344,95 @@ const FLOOR = -0.72;
   m.rotation.x = -Math.PI / 2; m.position.y = FLOOR; scene.add(m);
 })();
 
-/* 연필: 지우개를 바닥에 두고 서서, 심이 가장 최근 글을 가리킨다 */
-const pencil = new THREE.Group(); scene.add(pencil);
-const bodyTex = (() => {
-  const w = 512, h = 2048, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-  const g = cv.getContext('2d');
-  g.fillStyle = C.olive; g.fillRect(0, 0, w, h);
-  g.save(); g.translate(w / 12 + 14, 60); g.rotate(Math.PI / 2);
-  g.fillStyle = '#E6DCC0'; g.font = '500 30px Manrope'; g.fillText('THEREFORE', 0, 0);
-  g.font = '400 26px "Noto Serif KR"'; g.fillText('그러므로', 210, 0);
-  g.font = '500 26px Manrope'; g.fillText('HB', 360, 0);
-  g.restore();
-  const t = tex(cv); t.wrapT = THREE.ClampToEdgeWrapping; return t;
-})();
-const TEXT_LEN = 3.2;
-const body = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 1, 6), new THREE.MeshStandardMaterial({ map: bodyTex, roughness: 0.55, metalness: 0.05, flatShading: true }));
-const wood = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.152, 0.52, 48, 1, true), new THREE.MeshStandardMaterial({ color: '#D8C09A', roughness: 0.85 }));
-const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.0, 0.034, 0.11, 32), new THREE.MeshStandardMaterial({ color: '#2D2C29', roughness: 0.35, metalness: 0.45 }));
-const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.172, 0.172, 0.28, 48), new THREE.MeshStandardMaterial({ color: '#C2BCAE', roughness: 0.32, metalness: 0.35 }));
-const eraser = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.162, 0.2, 48), new THREE.MeshStandardMaterial({ color: '#C9A69C', roughness: 0.95 }));
-pencil.add(body, wood, lead, ferrule, eraser);
-eraser.position.y = FLOOR + 0.1;
-ferrule.position.y = FLOOR + 0.2 + 0.14;
-for (const dy of [0.05, 0.1, 0.18, 0.23]) {
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.173, 0.006, 8, 48), ferrule.material);
-  ring.rotation.x = Math.PI / 2; ring.position.y = FLOOR + 0.2 + dy; pencil.add(ring);
+/* 연필: 지우개를 바닥에 두고 서서, 심이 가장 최근 글을 가리킨다.
+   깎은 부분은 원뿔이 육각 몸통을 깎아 낸 모양을 그대로 계산한다(칠과 나무 사이의 물결 경계). */
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; // 연필(Standard 재질)에만 은은한 반사
+const APO = 0.118;                         // 육각 몸통 맞변 반지름(맞변 거리 0.236)
+const SLOPE = 0.25;                        // 깎은 원뿔의 기울기(반지름/길이)
+const LEAD = 0.12;                         // 드러난 심의 길이
+const SHARP = 0.92;                        // 끝부분 조각의 길이
+const hexR = (t) => APO / Math.cos(((t % (Math.PI / 3)) + Math.PI / 3) % (Math.PI / 3) - Math.PI / 6);
+const PAINT = new THREE.Color('#566451'), PAINT_HI = new THREE.Color('#61705B');
+const WOOD = new THREE.Color('#DDBF94'), WOOD_DK = new THREE.Color('#C9A779');
+const GRAPHITE = new THREE.Color('#38383A');
+function hexTube(height, rows, radiusAt, colorAt) {
+  const SEG = 132, pos = [], col = [], idx = [];
+  for (let j = 0; j <= rows; j++) {
+    const d = (j / rows) * height;          // 꼭대기에서 내려온 거리
+    for (let i = 0; i <= SEG; i++) {
+      const t = (i / SEG) * Math.PI * 2;
+      const r = radiusAt(t, d);
+      pos.push(Math.sin(t) * r, -d, Math.cos(t) * r);
+      const c = colorAt(t, d, r); col.push(c.r, c.g, c.b);
+    }
+  }
+  for (let j = 0; j < rows; j++) for (let i = 0; i < SEG; i++) {
+    const a = j * (SEG + 1) + i, b = a + SEG + 1;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
 }
-function layoutPencil(top) {
-  const b0 = FLOOR + 0.48, b1 = Math.max(b0 + 0.4, top - 0.63);
-  const L = b1 - b0;
-  body.scale.y = L; body.position.y = b0 + L / 2;
-  bodyTex.repeat.set(1, L / TEXT_LEN); bodyTex.offset.set(0, 1 - L / TEXT_LEN);
-  wood.position.y = b1 + 0.26; lead.position.y = b1 + 0.52 + 0.055;
+const faceShade = (t, base, hi) => { const f = Math.floor(((t + Math.PI / 6) % (Math.PI * 2)) / (Math.PI / 3)); return f % 2 ? base : hi; };
+const tmpCol = new THREE.Color();
+const pencilMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.42, metalness: 0.0, envMapIntensity: 0.55 });
+// 끝부분: 심 → 나무 원뿔 → 물결 경계 → 칠한 육각
+const tipGeo = hexTube(SHARP, 120, (t, d) => Math.min(hexR(t), d * SLOPE), (t, d, r) => {
+  if (r < hexR(t) - 1e-4) {
+    if (d < LEAD) return GRAPHITE;
+    const grain = 0.5 + 0.5 * Math.sin(t * 46 + Math.sin(t * 7) * 2 + d * 9);
+    return tmpCol.copy(WOOD).lerp(WOOD_DK, grain * 0.45);
+  }
+  return faceShade(t, PAINT, PAINT_HI);
+});
+const tipMesh = new THREE.Mesh(tipGeo, pencilMat);
+// 몸통: 같은 육각 단면, 길이는 글 수에 따라 늘어난다
+const bodyMesh = new THREE.Mesh(hexTube(1, 1, (t) => hexR(t), (t) => faceShade(t, PAINT, PAINT_HI)), pencilMat);
+// 금박 글자: 한 면에 얇게
+const foil = (() => {
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 1400; const g = cv.getContext('2d');
+  g.translate(78, 20); g.rotate(Math.PI / 2); g.fillStyle = '#E2CF9E';
+  g.font = '500 44px Manrope'; g.fillText('THEREFORE', 0, 0);
+  g.font = '400 40px "Noto Serif KR"'; g.fillText('그러므로', 300, 0);
+  g.font = '500 40px Manrope'; g.fillText('HB', 500, 0);
+  g.fillRect(600, -14, 2, 2);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 1.09), new THREE.MeshStandardMaterial({ map: tex(cv), transparent: true, metalness: 0.75, roughness: 0.3, envMapIntensity: 1.2 }));
+  m.position.set(Math.sin(Math.PI / 6) * (APO + 0.0015), -SHARP - 0.75, Math.cos(Math.PI / 6) * (APO + 0.0015));
+  m.rotation.y = Math.PI / 6;
+  return m;
+})();
+const tipGroup = new THREE.Group(); tipGroup.add(tipMesh, foil);
+// 금속 고리: 홈이 파인 회전체
+const ferrule = (() => {
+  const pts = [new THREE.Vector2(0.135, 0)];
+  const grooves = [0.06, 0.1, 0.2, 0.24];
+  for (let k = 1; k <= 60; k++) {
+    const y = (k / 60) * 0.3;
+    const dent = grooves.reduce((m, gy) => Math.max(m, Math.exp(-Math.pow((y - gy) / 0.007, 2))), 0);
+    pts.push(new THREE.Vector2(0.142 - dent * 0.008, y));
+  }
+  pts.push(new THREE.Vector2(0.135, 0.3));
+  return new THREE.Mesh(new THREE.LatheGeometry(pts, 72), new THREE.MeshStandardMaterial({ color: '#CFC8B8', metalness: 0.9, roughness: 0.28, envMapIntensity: 1 }));
+})();
+// 지우개: 바닥에 닿는 모서리를 둥글게
+const eraser = (() => {
+  const pts = [new THREE.Vector2(0, 0)];
+  for (let k = 0; k <= 10; k++) { const a = (k / 10) * Math.PI / 2; pts.push(new THREE.Vector2(0.104 + Math.sin(a) * 0.028, 0.028 - Math.cos(a) * 0.028)); }
+  pts.push(new THREE.Vector2(0.132, 0.22), new THREE.Vector2(0, 0.22));
+  return new THREE.Mesh(new THREE.LatheGeometry(pts, 64), new THREE.MeshStandardMaterial({ color: '#CDAEA3', roughness: 0.92, envMapIntensity: 0.4 }));
+})();
+const pencil = new THREE.Group(); scene.add(pencil);
+pencil.add(eraser, ferrule, bodyMesh, tipGroup);
+eraser.position.y = FLOOR;
+ferrule.position.y = FLOOR + 0.2;
+function layoutPencil(tipY) {
+  const b0 = FLOOR + 0.48, b1 = Math.max(b0 + 0.3, tipY - SHARP);
+  tipGroup.position.y = b1 + SHARP;
+  bodyMesh.scale.y = b1 - b0; bodyMesh.position.y = b1;
 }
 
 /* 분필 가루처럼 천천히 떠오르는 점 */
@@ -409,14 +467,17 @@ const MORPH_STAGGER = 0.022, MORPH_DUR = 1.15, MORPH_TOTAL = (N - 1) * MORPH_STA
 const st = {
   build: reduced ? N : 0, morphT: 0, mode: 0,
   az: ((N - 1) * (Math.PI * 2 / TURN)) % (Math.PI * 2) - 0.25, azV: 0, azT: null, y: reduced ? TOP : 0, yT: TOP, elev: 0.13, dist: 12, baseDist: 12,
-  hover: -1, sel: -1, filter: -1, dragging: false, lastInput: -1e9, visible: true,
+  cardScale: 1, hover: -1, sel: -1, filter: -1, dragging: false, lastInput: -1e9, visible: true,
 };
 
 function fit() {
   const w = stage.clientWidth, h = stage.clientHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   const v = THREE.MathUtils.degToRad(camera.fov) / 2, hh = Math.atan(Math.tan(v) * camera.aspect);
-  st.baseDist = Math.max(11.5, (R + 1.5) / Math.tan(hh));
+  // 휴대폰처럼 좁은 화면: 나선 양옆이 조금 잘리더라도 앞쪽 카드가 화면 폭의 절반 가까이 되게.
+  const narrow = camera.aspect < 0.8;
+  st.cardScale = narrow ? 1.15 : 1;
+  st.baseDist = narrow ? (R - 0.5) / Math.tan(hh) : Math.max(11.5, (R + 1.5) / Math.tan(hh));
 }
 fit(); new ResizeObserver(fit).observe(stage);
 new IntersectionObserver((e) => { st.visible = e[0].isIntersecting; }).observe(stage);
@@ -546,7 +607,7 @@ function frame(now) {
     c.group.rotation.set(0, 0, 0);
     c.group.rotation.y = a;
     c.group.rotateX(-0.07 * (1 - k) + ease(k) * Math.PI * 2 * (st.mode ? 1 : -1) * (k > 0 && k < 1 ? 1 : 0));
-    c.group.scale.setScalar(1 + c.hover * 0.06);
+    c.group.scale.setScalar((1 + c.hover * 0.06) * st.cardScale);
     const target = (st.filter < 0 || st.filter === c.p.s ? 1 : 0.1) * appear;
     c.op += (target - c.op) * 0.12;
     for (const m of c.mats) { m.opacity = c.op; m.depthWrite = c.op > 0.95; }
@@ -559,12 +620,12 @@ function frame(now) {
     const ia = i * 6;
     v3.set(Math.sin(a) * (r + push - 0.02), y, Math.cos(a) * (r + push - 0.02));
     tPos[ia] = v3.x; tPos[ia + 1] = v3.y; tPos[ia + 2] = v3.z;
-    tPos[ia + 3] = Math.sin(a) * 0.18; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * 0.18;
+    tPos[ia + 3] = Math.sin(a) * 0.14; tPos[ia + 4] = y; tPos[ia + 5] = Math.cos(a) * 0.14;
     const al = c.op * 0.5 * (1 - k);
     for (const o of [0, 4]) { tCol[i * 8 + o] = taupe.r; tCol[i * 8 + o + 1] = taupe.g; tCol[i * 8 + o + 2] = taupe.b; tCol[i * 8 + o + 3] = al; }
   });
   threadGeo.attributes.position.needsUpdate = true; threadGeo.attributes.color.needsUpdate = true;
-  layoutPencil(Math.max(topY, 0) + 0.85);
+  layoutPencil(Math.max(topY, 0) + 0.75);
   plates.forEach((m) => { m.material.opacity = clamp(mk * 1.6 - 0.6); });
 
   // 가루
