@@ -14,7 +14,7 @@ elsewHERE · HERE · tHEREfore
 |---|---|---|
 | ELSEWHERE | 해외 여행기 | burntbread-jpg/elsewhere (공개) |
 | HERE | 국내 장소 지도 | burntbread-jpg/here (비공개) |
-| THEREFORE | 생각 · 글 (연재 중심) | burntbread-jpg/therefore (공개, 아직 만들지 않음) |
+| THEREFORE | 생각 · 글 (연재 중심) | burntbread-jpg/therefore (공개) |
 
 ## 현재 상태
 
