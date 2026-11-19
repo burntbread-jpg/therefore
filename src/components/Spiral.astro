@@ -3,7 +3,7 @@ import { dateLabel, isoDate, noteUrl, type NoteView, type Series } from '../lib/
 interface Props { notes: NoteView[]; series: Series[] }
 const { notes, series } = Astro.props;
 // 연재에 속하지 않은 글이 있으면 '연재 밖 글'을 마지막 묶음으로 둔다.
-const groups = series.map((s) => ({ id: s.id, name: s.data.name, topic: s.data.topic, color: s.data.color }));
+const groups = series.map((s) => ({ id: s.id, name: s.data.name, topic: s.data.topic ?? '', color: s.data.color }));
 if (notes.some((n) => !n.seriesEntry)) groups.push({ id: '', name: '연재 밖 글', topic: '', color: '#69655F' });
 const index = new Map(groups.map((g, k) => [g.id, k]));
 const data = {

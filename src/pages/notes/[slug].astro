@@ -15,7 +15,7 @@ const { note, prev, next } = Astro.props;
 const { Content } = await render(note);
 const s = note.seriesEntry;
 ---
-<Base title={note.data.title} description={note.data.summary}>
+<Base title={note.data.title} description={note.data.summary ?? `${note.data.title} — THEREFORE`}>
   <article class="wrap narrow">
     <header class="note-head">
       <p class="meta">
@@ -24,7 +24,7 @@ const s = note.seriesEntry;
         {note.data.sample && <span>예시 글</span>}
       </p>
       <h1>{note.data.title}</h1>
-      <p class="summary">{note.data.summary}</p>
+      {note.data.summary && <p class="summary">{note.data.summary}</p>}
       <p class="date"><span class="num">{dateLabel(note.data.date)}</span><span class="num">No.{String(note.no).padStart(2, '0')}</span></p>
     </header>
     <div class="prose"><Content /></div>

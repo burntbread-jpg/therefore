@@ -6,9 +6,9 @@ const series = defineCollection({
   loader: file('./src/content/series.json'),
   schema: z.object({
     name: z.string(),
-    topic: z.string(),
+    topic: z.string().optional(),
     color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-    description: z.string(),
+    description: z.string().optional(),
     order: z.number().int(),
     sample: z.boolean().default(false),
   }),
@@ -23,7 +23,7 @@ const notes = defineCollection({
     date: z.coerce.date(),
     series: reference('series').optional(),
     format: z.enum(['essay', 'memo']).default('essay'),
-    summary: z.string(),
+    summary: z.string().optional(),
     draft: z.boolean().default(false),
     sample: z.boolean().default(false),
     // 세 사이트 통합 화면용(docs/FAMILY.md). 위치는 도시·지역 단위로만.

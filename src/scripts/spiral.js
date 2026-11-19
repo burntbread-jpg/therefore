@@ -104,6 +104,7 @@ export async function initSpiral(stage) {
   const RC = 3.5, CSTEP = 1.05;
   const CARD_W = 1.5, CARD_H = 0.94;
   const sAngle = (k) => k * Math.PI / 2;
+  const COL_TOP = Math.max(0, ...POSTS.map((p) => (p.ep - 1) * 1.05));
   const cardGeo = new THREE.BoxGeometry(CARD_W, CARD_H, 0.014);
   const tabGeo = new THREE.BoxGeometry(0.3, 0.085, 0.014);
 
@@ -338,8 +339,8 @@ export async function initSpiral(stage) {
     let lastM = -1;
     POSTS.forEach((p) => {
       const t = document.createElement('span'); const m = p.date.getUTCMonth();
-      t.className = 'tick' + (m !== lastM ? ' m' : ''); t.style.bottom = `${p.i / (N - 1) * 100}%`; bodyEl.append(t);
-      if (m !== lastM) { const l = document.createElement('span'); l.className = 'lab'; l.textContent = `${m + 1}월`; l.style.bottom = `${p.i / (N - 1) * 100}%`; ruler.append(l); lastM = m; }
+      t.className = 'tick' + (m !== lastM ? ' m' : ''); t.style.bottom = `${p.i / Math.max(1, N - 1) * 100}%`; bodyEl.append(t);
+      if (m !== lastM) { const l = document.createElement('span'); l.className = 'lab'; l.textContent = `${m + 1}월`; l.style.bottom = `${p.i / Math.max(1, N - 1) * 100}%`; ruler.append(l); lastM = m; }
     });
     const now = document.createElement('span'); now.className = 'now'; ruler.append(now); st.nowEl = now;
     const setFrom = (e) => { const r = ruler.getBoundingClientRect(); st.yT = clamp(1 - (e.clientY - r.top) / r.height) * TOP; st.sel = -1; st.azT = null; st.lastInput = performance.now(); };
@@ -406,7 +407,7 @@ export async function initSpiral(stage) {
     const idle = !st.dragging && now - st.lastInput > 2600;
     if (st.azT !== null) st.az = lerpAngle(st.az, st.azT, damp(0.07, dt));
     else if (!st.dragging) { st.az += st.azV * dt; st.azV *= Math.exp(-5 * dt); if (idle && !reduced && st.sel < 0 && !st.over && !st.narrow) st.az += dt * 0.07; }
-    if (st.mode === 1 && st.sel < 0) st.yT = 3.2;
+    if (st.mode === 1 && st.sel < 0) st.yT = COL_TOP / 2; // 가장 높은 기둥의 가운데
     st.y += (st.yT - st.y) * (reduced ? 1 : damp(0.07, dt));
     const distT = st.baseDist + (st.mode ? 7 : 0) - (st.sel >= 0 ? (st.narrow ? 2 : 4.2) : 0); // 휴대폰은 카드가 화면 폭의 약 70%가 되는 데서 멈춘다
     st.dist += (distT - st.dist) * damp(0.06, dt);
@@ -462,7 +463,7 @@ export async function initSpiral(stage) {
       dust.pts.rotation.y += dt * 0.01;
     }
 
-    if (st.nowEl) st.nowEl.style.bottom = `${clamp(st.y / TOP) * 100}%`;
+    if (st.nowEl) st.nowEl.style.bottom = `${(TOP ? clamp(st.y / TOP) : 1) * 100}%`;
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);

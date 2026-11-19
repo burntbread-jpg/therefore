@@ -9,12 +9,12 @@ export async function getStaticPaths() {
 interface Props { s: Series; list: NoteView[] }
 const { s, list } = Astro.props;
 ---
-<Base title={s.data.name} description={s.data.description}>
+<Base title={s.data.name} description={s.data.description ?? `${s.data.name} — THEREFORE 연재`}>
   <div class="wrap narrow">
     <header class="page-head">
-      <p class="eyebrow">{s.data.topic} · <span class="num">{list.length}</span>편</p>
+      <p class="eyebrow">{s.data.topic && <>{s.data.topic} · </>}<span class="num">{list.length}</span>편</p>
       <h1>{s.data.name}</h1>
-      <p class="lede">{s.data.description}</p>
+      {s.data.description && <p class="lede">{s.data.description}</p>}
     </header>
     <ol class="rows">
       {list.map((n) => <li><span class="n num">{String(n.ep).padStart(2, '0')}</span><a href={noteUrl(n)}><span class="t">{n.data.title}</span><span class="s">{formatLabel[n.data.format]}</span></a><span class="d num">{dateLabel(n.data.date)}</span></li>)}

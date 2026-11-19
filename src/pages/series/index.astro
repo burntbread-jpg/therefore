@@ -18,9 +18,9 @@ const series = await publicSeries(notes);
           <li>
             <span class="no num">{String(k + 1).padStart(2, '0')}</span>
             <div>
-              <p class="meta"><i style={`background:${s.data.color}`}></i>{s.data.topic}</p>
+              <p class="meta"><i style={`background:${s.data.color}`}></i>{s.data.topic ?? '연재'}</p>
               <h2><a href={`/series/${s.id}/`}>{s.data.name}</a></h2>
-              <p class="desc">{s.data.description}</p>
+              {s.data.description && <p class="desc">{s.data.description}</p>}
               <p class="count"><span class="num">{list.length}</span>편 · <a class="hit" href={`/series/${s.id}/`}>목차 →</a></p>
             </div>
             <ol class="rows">
